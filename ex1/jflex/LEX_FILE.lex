@@ -17,11 +17,11 @@ import java_cup.runtime.*;
 /************************************/
 /* OPTIONS AND DECLARATIONS SECTION */
 /************************************/
-   
-/*****************************************************/ 
+
+/*****************************************************/
 /* Lexer is the name of the class JFlex will create. */
 /* The code will be written to the file Lexer.java.  */
-/*****************************************************/ 
+/*****************************************************/
 %class Lexer
 
 /********************************************************************/
@@ -44,12 +44,12 @@ import java_cup.runtime.*;
 /****************/
 /* DECLARATIONS */
 /****************/
-/*****************************************************************************/   
+/*****************************************************************************/
 /* Code between %{ and %}, both of which must be at the beginning of a line, */
 /* will be copied verbatim (letter to letter) into the Lexer class code.     */
 /* Here you declare member variables and functions that are used inside the  */
-/* scanner actions.                                                          */  
-/*****************************************************************************/   
+/* scanner actions.                                                          */
+/*****************************************************************************/
 %{
 	/*********************************************************************************/
 	/* Create a new java_cup.runtime.Symbol with information about the current token */
@@ -60,12 +60,12 @@ import java_cup.runtime.*;
 	/*******************************************/
 	/* Enable line number extraction from main */
 	/*******************************************/
-	public int getLine() { return yyline + 1; } 
+	public int getLine() { return yyline + 1; }
 
 	/**********************************************/
 	/* Enable token position extraction from main */
 	/**********************************************/
-	public int getTokenStartPosition() { return yycolumn + 1; } 
+	public int getTokenStartPosition() { return yycolumn + 1; }
 %}
 
 /***********************/
@@ -74,7 +74,17 @@ import java_cup.runtime.*;
 LineTerminator	= \r|\n|\r\n
 WhiteSpace		= {LineTerminator} | [ \t]
 INTEGER			= 0 | [1-9][0-9]*
-ID				= [a-z]+
+IDENTIFIER		= [a-zA-Z][a-zA-Z0-9]*
+STRING_TEXT		= [a-zA-Z]*
+STRING			= \"{STRING_TEXT}\"
+
+/* Comment characters: letters, digits, white spaces, ( ) [ ] { } ? ! + - * / . ; */
+/* For line comments: everything except newlines */
+LINE_COMMENT_CHAR = [a-zA-Z0-9 \t()\[\]{}?!+\-*\/.;]
+/* For block comments: everything including newlines */
+BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
+LINE_COMMENT    = "//" {LINE_COMMENT_CHAR}*
+BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 
 /******************************/
 /* DOLLAR DOLLAR - DON'T TOUCH! */
@@ -94,14 +104,67 @@ ID				= [a-z]+
 
 <YYINITIAL> {
 
-"+"					{ return symbol(TokenNames.PLUS);}
-"-"					{ return symbol(TokenNames.MINUS);}
-"PPP"				{ return symbol(TokenNames.TIMES);}
-"/"					{ return symbol(TokenNames.DIVIDE);}
-"("					{ return symbol(TokenNames.LPAREN);}
-")"					{ return symbol(TokenNames.RPAREN);}
-{INTEGER}			{ return symbol(TokenNames.NUMBER, Integer.valueOf(yytext()));}
-{ID}				{ return symbol(TokenNames.ID,     yytext());}
+/* Keywords - must come before IDENTIFIER */
+"class"				{ return symbol(TokenNames.CLASS, "CLASS[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"nil"				{ return symbol(TokenNames.NIL, "NIL[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"array"				{ return symbol(TokenNames.ARRAY, "ARRAY[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"while"				{ return symbol(TokenNames.WHILE, "WHILE[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"if"				{ return symbol(TokenNames.IF, "IF[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"else"				{ return symbol(TokenNames.ELSE, "ELSE[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"new"				{ return symbol(TokenNames.NEW, "NEW[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"extends"			{ return symbol(TokenNames.EXTENDS, "EXTENDS[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"return"			{ return symbol(TokenNames.RETURN, "RETURN[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"int"				{ return symbol(TokenNames.TYPE_INT, "TYPE_INT[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"string"			{ return symbol(TokenNames.TYPE_STRING, "TYPE_STRING[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"void"				{ return symbol(TokenNames.TYPE_VOID, "TYPE_VOID[" + getLine() + "," + getTokenStartPosition() + "]"); }
+
+/* Operators - two-character operators must come before single-character ones */
+":="				{ return symbol(TokenNames.ASSIGN, "ASSIGN[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"="					{ return symbol(TokenNames.EQ, "EQ[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"<"					{ return symbol(TokenNames.LT, "LT[" + getLine() + "," + getTokenStartPosition() + "]"); }
+">"					{ return symbol(TokenNames.GT, "GT[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"+"					{ return symbol(TokenNames.PLUS, "PLUS[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"-"					{ return symbol(TokenNames.MINUS, "MINUS[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"*"					{ return symbol(TokenNames.TIMES, "TIMES[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"/"					{ return symbol(TokenNames.DIVIDE, "DIVIDE[" + getLine() + "," + getTokenStartPosition() + "]"); }
+
+/* Punctuation */
+"("					{ return symbol(TokenNames.LPAREN, "LPAREN[" + getLine() + "," + getTokenStartPosition() + "]"); }
+")"					{ return symbol(TokenNames.RPAREN, "RPAREN[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"["					{ return symbol(TokenNames.LBRACK, "LBRACK[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"]"					{ return symbol(TokenNames.RBRACK, "RBRACK[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"{"					{ return symbol(TokenNames.LBRACE, "LBRACE[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"}"					{ return symbol(TokenNames.RBRACE, "RBRACE[" + getLine() + "," + getTokenStartPosition() + "]"); }
+","					{ return symbol(TokenNames.COMMA, "COMMA[" + getLine() + "," + getTokenStartPosition() + "]"); }
+"."					{ return symbol(TokenNames.DOT, "DOT[" + getLine() + "," + getTokenStartPosition() + "]"); }
+";"					{ return symbol(TokenNames.SEMICOLON, "SEMICOLON[" + getLine() + "," + getTokenStartPosition() + "]"); }
+
+/* Comments */
+{LINE_COMMENT}		{ /* just skip, do nothing */ }
+{BLOCK_COMMENT}		{ /* just skip, do nothing */ }
+
+/* Integers - validate range */
+{INTEGER}			{
+						int val = Integer.parseInt(yytext());
+						if (val < 0 || val > 32767) {
+							return symbol(TokenNames.ERROR, "ERROR");
+						}
+						return symbol(TokenNames.INT, "INT(" + val + ")[" + getLine() + "," + getTokenStartPosition() + "]");
+					}
+
+/* Strings */
+{STRING}			{ return symbol(TokenNames.STRING, "STRING(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]"); }
+
+/* Identifiers - must come after keywords */
+{IDENTIFIER}		{ return symbol(TokenNames.ID, "ID(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]"); }
+
+/* Whitespace */
 {WhiteSpace}		{ /* just skip what was found, do nothing */ }
-<<EOF>>				{ return symbol(TokenNames.EOF);}
+
+/* End of file */
+<<EOF>>				{ return symbol(TokenNames.EOF); }
+
+/* Error - anything else is a lexical error */
+.					{ return symbol(TokenNames.ERROR, "ERROR"); }
+
 }
