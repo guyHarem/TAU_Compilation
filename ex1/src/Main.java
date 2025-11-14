@@ -55,8 +55,8 @@ public class Main
 				/*********************/
 				/* [7] Print to file */
 				/*********************/
-				fileWriter.print(l.getLine());
-				fileWriter.print(": ");
+				// fileWriter.print(l.getLine());
+				// fileWriter.print(": ");
 				fileWriter.print(s.value);
 				fileWriter.print("\n");
 				
