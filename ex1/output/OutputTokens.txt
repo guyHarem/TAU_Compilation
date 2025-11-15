@@ -1,2 +1,2 @@
+ID(asdgdsag)[1,1]
 ERROR
-ID(invalidToken)[1,2]

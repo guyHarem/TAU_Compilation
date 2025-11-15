@@ -74,16 +74,21 @@ import java_cup.runtime.*;
 LineTerminator	= \r|\n|\r\n
 WhiteSpace		= {LineTerminator} | [ \t]
 INTEGER			= 0 | [1-9][0-9]*
+INVALID_NUMBER = 0[0-9]+ //NOT ALLOWING INT TO START WITH 0
 IDENTIFIER		= [a-zA-Z][a-zA-Z0-9]*
 STRING_TEXT		= [a-zA-Z]*
 STRING			= \"{STRING_TEXT}\"
+INVALID_STRING	= \"[^\"]*\"  // Any string that contains any character (invalid strings will be caught)
 
 /* Comment characters: letters, digits, white spaces, ( ) [ ] { } ? ! + - * / . ; */
+
 /* For line comments: everything except newlines */
 LINE_COMMENT_CHAR = [a-zA-Z0-9 \t()\[\]{}?!+\-*\/.;]
+LINE_COMMENT    = "//" {LINE_COMMENT_CHAR}* {LineTerminator} //ADDED LINE TERMINATOR
+
+
 /* For block comments: everything including newlines */
 BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
-LINE_COMMENT    = "//" {LINE_COMMENT_CHAR}*
 BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 
 /******************************/
@@ -143,17 +148,27 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 {LINE_COMMENT}		{ /* just skip, do nothing */ }
 {BLOCK_COMMENT}		{ /* just skip, do nothing */ }
 
+
+/* Invalid numbers with leading zeros - MUST COME BEFORE INTEGER!*/
+{INVALID_NUMBER}	{return symbol(TokenNames.ERROR, "ERROR");}
+
 /* Integers - validate range */
 {INTEGER}			{
-						int val = Integer.parseInt(yytext());
-						if (val < 0 || val > 32767) {
+						try {
+							int val = Integer.parseInt(yytext());
+							if( val < 0 || val > 32767){
+								throw new NumberFormatException("Value exceeds L language limit");
+							}
+							return symbol(TokenNames.INT, "INT(" + val + ")[" + getLine() + "," + getTokenStartPosition() + "]");
+						} catch (NumberFormatException e) { //Either number it too large for Java, or exeecds L language limit
 							return symbol(TokenNames.ERROR, "ERROR");
 						}
-						return symbol(TokenNames.INT, "INT(" + val + ")[" + getLine() + "," + getTokenStartPosition() + "]");
-					}
+}
 
 /* Strings */
 {STRING}			{ return symbol(TokenNames.STRING, "STRING(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]"); }
+
+{INVALID_STRING}	{return symbol(TokenNames.ERROR, "ERROR");}
 
 /* Identifiers - must come after keywords */
 {IDENTIFIER}		{ return symbol(TokenNames.ID, "ID(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]"); }

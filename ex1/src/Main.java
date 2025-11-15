@@ -39,6 +39,7 @@ public class Main
 			/********************************/
 			/* [5] Main reading tokens loop */
 			/********************************/
+			boolean firstToken = true;
 			while (s.sym != TokenNames.EOF)
 			{
 				/************************/
@@ -55,10 +56,13 @@ public class Main
 				/*********************/
 				/* [7] Print to file */
 				/*********************/
-				// fileWriter.print(l.getLine());
-				// fileWriter.print(": ");
+				// fileWriter.print(l.getLine()); //REMOVED DUE TO OUTPUT FORMAT
+				// fileWriter.print(": "); //REMOVED DUE TO OUTPUT FORMAT
+				if( !firstToken) {
+					fileWriter.print("\n");
+				}
 				fileWriter.print(s.value);
-				fileWriter.print("\n");
+				firstToken = false;
 				
 				/***********************/
 				/* [8] Read next token */
