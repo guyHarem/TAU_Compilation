@@ -1,2 +1,3 @@
-ID(asdgdsag)[1,1]
-ERROR
+ID(classa)[1,1]
+INT(3)[2,1]
+ID(a200)[2,2]
