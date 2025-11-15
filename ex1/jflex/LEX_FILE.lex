@@ -78,7 +78,8 @@ INVALID_NUMBER = 0[0-9]+ //NOT ALLOWING INT TO START WITH 0
 IDENTIFIER		= [a-zA-Z][a-zA-Z0-9]*
 STRING_TEXT		= [a-zA-Z]*
 STRING			= \"{STRING_TEXT}\"
-INVALID_STRING	= \"[^\"]*\"  // Any string that contains any character (invalid strings will be caught)
+// INVALID_STRING	= \"[^\"]*\"  // Any string that contains any character (invalid strings will be caught)
+DOLLAR_SIGN  	= \$
 
 /* Comment characters: letters, digits, white spaces, ( ) [ ] { } ? ! + - * / . ; */
 
@@ -168,7 +169,7 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 /* Strings */
 {STRING}			{ return symbol(TokenNames.STRING, "STRING(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]"); }
 
-{INVALID_STRING}	{return symbol(TokenNames.ERROR, "ERROR");}
+// {INVALID_STRING}	{return symbol(TokenNames.ERROR, "ERROR");}
 
 /* Identifiers - must come after keywords */
 {IDENTIFIER}		{ return symbol(TokenNames.ID, "ID(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]"); }
@@ -177,7 +178,8 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 {WhiteSpace}		{ /* just skip what was found, do nothing */ }
 
 /* End of file */
-<<EOF>>				{ return symbol(TokenNames.EOF); }
+{DOLLAR_SIGN}		{ return symbol(TokenNames.EOF); }
+<<EOF>>             { return symbol(TokenNames.EOF); }
 
 /* Error - anything else is a lexical error */
 .					{ return symbol(TokenNames.ERROR, "ERROR"); }
