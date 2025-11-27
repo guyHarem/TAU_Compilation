@@ -14,13 +14,12 @@ public class Main
      */
 	private static void exitError(String outputFileName){
 		try {
+		System.out.print("ERROR\n");
 		PrintWriter fileWriter = new PrintWriter(outputFileName);
 		fileWriter.print("ERROR");
 		fileWriter.close();
-		System.exit(1); //NEEDED????
 	} catch (Exception e) {
 		e.printStackTrace();
-		System.exit(1); //NEEDED?
 	}
 }
 
