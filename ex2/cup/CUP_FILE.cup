@@ -52,6 +52,20 @@ scan with
 /*************/
 /* TERMINALS */
 /*************/
+terminal CLASS;
+terminal ELSE;
+terminal EXTENDS;
+terminal RETURN;
+terminal NEW;
+terminal ARRAY;
+terminal NIL;
+terminal TYPE_INT;
+terminal TYPE_STRING;
+terminal TYPE_VOID;
+terminal COMMA;
+terminal LT;
+terminal GT;
+
 terminal IF;
 terminal EQ;
 terminal DOT;
@@ -72,12 +86,24 @@ terminal ASSIGN;
 /*************/
 /* TERMINALS */
 /*************/
+terminal String STRING;
 terminal Integer INT;
 terminal String ID;
 
 /*****************/
 /* NON TERMINALS */
 /*****************/
+non terminal AstProgram program;
+non terminal AstDec dec;
+non terminal AstType type;
+non terminal AstVarDec varDec;
+non terminal AstFuncDec funcDec;
+non terminal AstClassDec classDec;
+non terminal AstArrayTypedef arrayTypedef;
+non terminal AstDec cField;
+non terminal AstExp newExp;
+non terminal AstExp callExp;
+
 non terminal AstExp exp;
 non terminal AstVar var;
 non terminal AstStmt stmt;
@@ -86,15 +112,19 @@ non terminal AstStmtList stmtList;
 /***********************/
 /* OPERATOR PRECEDENCE */
 /***********************/
-precedence left PLUS;
-precedence left MINUS;
-precedence left TIMES;
-precedence left DIVIDE;
+precedence right ASSIGN;
+precedence left EQ;
+precedence left LT, GT;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE;
+precedence left LBRACK;
+precedence left LPAREN;
+precedence left DOT;
 
 /************************/
-/* START WITH: stmtList */
+/* START WITH: program  */
 /************************/
-start with stmtList;
+start with program;
 
 /********************/
 /* DERIVATION RULES */
