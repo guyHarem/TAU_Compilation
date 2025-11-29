@@ -7,7 +7,8 @@ public class AstList<T extends AstNode> extends AstNode {
     // We store the type name (e.g., "stmt", "dec") to generate labels
     private String typeName; 
 
-    public AstList(T head, AstList<T> tail, String typeName) {
+    public AstList(T head, AstList<T> tail, String typeName, int lineNum) {
+        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.head = head;
         this.tail = tail;

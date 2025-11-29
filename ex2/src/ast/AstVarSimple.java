@@ -10,8 +10,9 @@ public class AstVarSimple extends AstVar
 	/******************/
 	/* CONSTRUCTOR(S) */
 	/******************/
-	public AstVarSimple(String name)
+	public AstVarSimple(String name, int lineNum)
 	{
+		super(lineNum);
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/

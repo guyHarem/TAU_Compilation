@@ -151,7 +151,7 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 
 
 /* Invalid numbers with leading zeros - MUST COME BEFORE INTEGER!*/
-{INVALID_NUMBER}	{return symbol(TokenNames.ERROR, "ERROR");}
+{INVALID_NUMBER}	{return symbol(TokenNames.error, "ERROR");}
 
 /* Integers - validate range */
 {INTEGER}			{
@@ -162,14 +162,14 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 							}
 							return symbol(TokenNames.INT, Integer.valueOf(val));
 						} catch (NumberFormatException e) { //Either number it too large for Java, or exeecds L language limit
-							return symbol(TokenNames.ERROR, "ERROR");
+							return symbol(TokenNames.error, "ERROR");
 						}
 }
 
 /* Strings */
 {STRING}			{ return symbol(TokenNames.STRING, yytext()); }
 
-// {INVALID_STRING}	{return symbol(TokenNames.ERROR, "ERROR");}
+// {INVALID_STRING}	{return symbol(TokenNames.error, "ERROR");}
 
 /* Identifiers - must come after keywords */
 {IDENTIFIER}		{ return symbol(TokenNames.ID, yytext()); }
@@ -182,6 +182,6 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 <<EOF>>             { return symbol(TokenNames.EOF); }
 
 /* Error - anything else is a lexical error */
-.					{ return symbol(TokenNames.ERROR, "ERROR"); }
+.					{ return symbol(TokenNames.error, "ERROR"); }
 
 }

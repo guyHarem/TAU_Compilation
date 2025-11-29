@@ -11,8 +11,9 @@ public class AstStmtAssign extends AstStmt
 	/*******************/
 	/*  CONSTRUCTOR(S) */
 	/*******************/
-	public AstStmtAssign(AstVar var, AstExp exp)
+	public AstStmtAssign(AstVar var, AstExp exp, int lineNum)
 	{
+		super(lineNum);
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/

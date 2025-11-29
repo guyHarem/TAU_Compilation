@@ -1,5 +1,7 @@
 package ast;
 
+import java.io.PrintWriter;
+
 public abstract class AstNode
 {
 	/*******************************************/
@@ -8,6 +10,19 @@ public abstract class AstNode
 	/* a graphviz dot format of the AST ...    */
 	/*******************************************/
 	public int serialNumber;
+
+	public static PrintWriter fileWriter;
+	public int line;
+
+	public AstNode(int lineNum){
+		line = lineNum;
+	}
+
+	public void printError(){
+		fileWriter.write("ERROR("+line+")\n");
+		fileWriter.close();
+		System.exit(0);
+	}
 	
 	/***********************************************/
 	/* The default message for an unknown AST node */

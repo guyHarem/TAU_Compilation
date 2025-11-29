@@ -9,8 +9,9 @@ public class AstExpBinop extends AstExp
 	/******************/
 	/* CONSTRUCTOR(S) */
 	/******************/
-	public AstExpBinop(AstExp left, AstExp right, int op)
+	public AstExpBinop(AstExp left, AstExp right, int op, int lineNum)
 	{
+		super(lineNum);
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
@@ -41,6 +42,11 @@ public class AstExpBinop extends AstExp
 		/*********************************/
 		if (op == 0) {sop = "+";}
 		if (op == 1) {sop = "-";}
+		if (op == 2) {sop = "*";}
+		if (op == 3) {sop = "/";}
+		if (op == 4) {sop = "<=";}
+		if (op == 5) {sop = ">=";}
+		if (op == 6) {sop = "==";}
 		
 		/*************************************/
 		/* AST NODE TYPE = AST BINOP EXP */
