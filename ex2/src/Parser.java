@@ -334,24 +334,9 @@ public class Parser extends java_cup.runtime.lr_parser {
     throws java.lang.Exception
     {
 
-	Symbol s;
-        this.lastTokenLine = lexer.getLine();
-	s = lexer.next_token();
-	//System.out.print(s.sym);
-	System.out.print("[");
-	System.out.print(lexer.getLine());
-	System.out.print(":");
-	System.out.print(lexer.getTokenStartPosition());
-	System.out.print("] ");
-	System.out.print(TokenNames.terminalNames[s.sym]);
-	if (s.value != null)
-	{
-		System.out.print("( ");
-		System.out.print(s.value);
-		System.out.print(" )");
-	}
-	System.out.print("\n");
-	return s; 
+    Symbol s = lexer.next_token();
+    this.lastTokenLine = lexer.getLine();
+    return s;
 
     }
 
