@@ -111,7 +111,8 @@ def run_test(test_path, output_dir, executable_file):
     if not expected_output_path.exists():
         print(f"FAILED (Expected output file missing)")
         raise RuntimeError(f"Expected output file not found")
-        
+    
+    print("Output File:", str(output_path))
     with open(str(output_path), 'r') as f1, open(str(expected_output_path), 'r') as f2:
         content1 = f1.read()
         content2 = f2.read()

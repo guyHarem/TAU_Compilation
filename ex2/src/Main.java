@@ -23,13 +23,9 @@ public class Main
             p = new Parser(l, fileWriter);
 
             s = p.parse();
-            // fileWriter.print("OK");  
-            // fileWriter.flush();
-            // fileWriter.close();
-            
-            PrintWriter pw = new PrintWriter(outputFileName);
-            pw.print("OK");
-            pw.close();
+            fileWriter.print("OK");  
+            fileWriter.flush();
+            fileWriter.close();
             
             // This is needed for making the actual AST, but we remove it for the test.
             // ast = (AstProgram) s.value;
