@@ -119,6 +119,10 @@ def run_test(test_path, output_dir, executable_file):
             print("OK")
         else:
             print("FAILED")
+            print("---- Expected Output ----")
+            print(content2)
+            print("---- Actual Output ----")
+            print(content1)
             raise RuntimeError("Test failed") 
 
 

@@ -20,16 +20,17 @@ public class Main
             fileReader = new FileReader(inputFileName);
             fileWriter = new PrintWriter(outputFileName);
             l = new Lexer(fileReader);
-            p = new Parser(l, fileWriter); 
+            p = new Parser(l, fileWriter);
 
             s = p.parse();
-            ast = (AstProgram) s.value; 
             fileWriter.print("OK");
             
-            // ast.printMe();
-            fileWriter.flush(); 
-            fileWriter.close(); 
-            if (ast != null) AstGraphviz.getInstance().finalizeFile();
+            ast = (AstProgram) s.value;
+            ast.printMe();
+            
+            fileWriter.flush();
+            fileWriter.close();
+            AstGraphviz.getInstance().finalizeFile();
         }
         catch (Exception e)
         {
