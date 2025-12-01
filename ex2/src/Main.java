@@ -26,7 +26,7 @@ public class Main
             ast = (AstProgram) s.value; 
             fileWriter.print("OK");
             
-            ast.printMe();
+            // ast.printMe();
             fileWriter.flush(); 
             fileWriter.close(); 
             if (ast != null) AstGraphviz.getInstance().finalizeFile();
