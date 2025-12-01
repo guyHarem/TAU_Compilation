@@ -1,7 +1,6 @@
 package ast;
 
 public class AstClassDec extends AstDec {
-
     public String name;
     public String parent;
     public AstList<AstDec> fields;
@@ -13,14 +12,12 @@ public class AstClassDec extends AstDec {
         this.parent = parent;
         this.fields = fields;
     }
-    
-    public void PrintMe() {
-        System.out.format("AST NODE CLASS DEC: %s EXTENDS %s\n", name, parent != null ? parent : "null");
+
+    public void printMe() {
+        String parentStr = (parent != null) ? parent : "null";
+        String output = String.format("def class (%s)\nextends (%s)", name, parentStr);
         if (fields != null) fields.printMe();
-        AstGraphviz.getInstance().logNode(
-                serialNumber,
-                String.format("CLASS\nDEC\n(%s)", name));
-        if (fields != null) 
-            AstGraphviz.getInstance().logEdge(serialNumber, fields.serialNumber);
-    } 
+        AstGraphviz.getInstance().logNode(serialNumber, output);
+        if (fields != null) AstGraphviz.getInstance().logEdge(serialNumber, fields.serialNumber);
+    }
 }

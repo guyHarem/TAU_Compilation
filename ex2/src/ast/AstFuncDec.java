@@ -1,7 +1,6 @@
 package ast;
 
 public class AstFuncDec extends AstDec {
-
     public AstType type;
     public String name;
     public AstList<AstVarDec> params;
@@ -15,20 +14,15 @@ public class AstFuncDec extends AstDec {
         this.params = params;
         this.body = body;
     }
-    
-    public void PrintMe() {
-        System.out.format("AST NODE FUNC DEC: %s\n", name);
+
+    @Override
+    public void printMe() {
         if (type != null) type.printMe();
         if (params != null) params.printMe();
         if (body != null) body.printMe();
-        AstGraphviz.getInstance().logNode(
-                serialNumber,
-                String.format("FUNC\nDEC\n(%s)", name));
-        if (type != null) 
-            AstGraphviz.getInstance().logEdge(serialNumber, type.serialNumber);
-        if (params != null) 
-            AstGraphviz.getInstance().logEdge(serialNumber, params.serialNumber);
-        if (body != null) 
-            AstGraphviz.getInstance().logEdge(serialNumber, body.serialNumber);
+        AstGraphviz.getInstance().logNode(serialNumber, String.format("def func (%s)", name));
+        if (type != null) AstGraphviz.getInstance().logEdge(serialNumber, type.serialNumber);
+        if (params != null) AstGraphviz.getInstance().logEdge(serialNumber, params.serialNumber);
+        if (body != null) AstGraphviz.getInstance().logEdge(serialNumber, body.serialNumber);
     }
 }

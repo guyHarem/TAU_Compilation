@@ -18,7 +18,7 @@ public abstract class AstNode
 		line = lineNum;
 	}
 
-	public void printError(){
+	public void printError() {
 		fileWriter.write("ERROR("+line+")\n");
 		fileWriter.close();
 		System.exit(0);

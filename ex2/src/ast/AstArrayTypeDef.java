@@ -1,7 +1,6 @@
 package ast;
 
 public class AstArrayTypeDef extends AstDec {
-
     public String name;
     public AstType type;
 
@@ -11,17 +10,12 @@ public class AstArrayTypeDef extends AstDec {
         this.name = name;
         this.type = type;
     }
-    
-    public void PrintMe() {
-        System.out.format("AST NODE ARRAY TYPE DEF( %s )\n", name);
 
-        if (type != null) type.PrintMe();
-
-        AstGraphviz.getInstance().logNode(
-                serialNumber,
-                String.format("ARRAY\nTYPE DEF\n(%s)", name));
-
-        if (type != null)
-            AstGraphviz.getInstance().logEdge(serialNumber, type.serialNumber);
-    }  
+    @Override
+    public void printMe() {
+        String output = String.format("def array (%s)", name);
+        if (type != null) type.printMe();
+        AstGraphviz.getInstance().logNode(serialNumber, output);
+        if (type != null) AstGraphviz.getInstance().logEdge(serialNumber, type.serialNumber);
+    }
 }

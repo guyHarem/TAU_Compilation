@@ -6,6 +6,7 @@
 import java_cup.runtime.*;
 import ast.*;
 import java.util.*;
+import java.io.PrintWriter;
 import java_cup.runtime.XMLElement;
 
 /** CUP v0.11b 20160615 (GIT 4ac7450) generated parser.
@@ -356,18 +357,20 @@ public class Parser extends java_cup.runtime.lr_parser {
 
 
     public Lexer lexer;
-    public PrintWriter fileWriter;
+    public int lastTokenLine;      // Restored this missing variable
+    public PrintWriter fileWriter; // Kept this for the output file
 
     public Parser(Lexer lexer, PrintWriter fileWriter)
     {
         super(lexer);
         this.lexer = lexer;
         this.fileWriter = fileWriter;
+        this.lastTokenLine = 0;    // Restored initialization
     }
 
     public void report_error(String message, Object info)
     {
-        // Required: Write "ERROR(line)" for syntax errors [cite: 70, 71]
+        // Write "ERROR(line)" to the file if a syntax error occurs
         if (fileWriter != null) {
             fileWriter.print("ERROR(" + lexer.getLine() + ")");
             fileWriter.close();

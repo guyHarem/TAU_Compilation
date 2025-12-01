@@ -25,11 +25,11 @@ public class Main
             s = p.parse();
             ast = (AstProgram) s.value; 
             fileWriter.print("OK");
-            // ast.printMe();
-            fileWriter.close();
-            if (ast != null) {
-                AstGraphviz.getInstance().finalizeFile();
-            }
+            
+            ast.printMe();
+            fileWriter.flush(); 
+            fileWriter.close(); 
+            if (ast != null) AstGraphviz.getInstance().finalizeFile();
         }
         catch (Exception e)
         {

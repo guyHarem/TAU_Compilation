@@ -1,25 +1,18 @@
 package ast;
 
-public class AstProgram extends AstNode { 
-
+public class AstProgram extends AstNode {
     public AstList<AstDec> decList;
 
     public AstProgram(AstList<AstDec> decList, int lineNum) {
         super(lineNum);
+        serialNumber = AstNodeSerialNumber.getFresh();
         this.decList = decList;
     }
-    
 
+    @Override
     public void printMe() {
-        System.out.print("AST NODE PROGRAM\n");
-
         if (decList != null) decList.printMe();
-
-        AstGraphviz.getInstance().logNode(
-                serialNumber,
-                "PROGRAM");
-
-        if (decList != null) 
-            AstGraphviz.getInstance().logEdge(serialNumber, decList.serialNumber);
+        AstGraphviz.getInstance().logNode(serialNumber, "Program");
+        if (decList != null) AstGraphviz.getInstance().logEdge(serialNumber, decList.serialNumber);
     }
 }

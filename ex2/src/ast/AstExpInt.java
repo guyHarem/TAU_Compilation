@@ -1,46 +1,16 @@
 package ast;
 
-public class AstExpInt extends AstExp
-{
-	public int value;
-	
-	/******************/
-	/* CONSTRUCTOR(S) */
-	/******************/
-	public AstExpInt(int value, int lineNum)
-	{
-		super(lineNum);
-		/******************************/
-		/* SET A UNIQUE SERIAL NUMBER */
-		/******************************/
-		serialNumber = AstNodeSerialNumber.getFresh();
+public class AstExpInt extends AstExp {
+    public int value;
 
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.format("====================== exp -> INT( %d )\n", value);
+    public AstExpInt(int value, int lineNum) {
+        super(lineNum);
+        serialNumber = AstNodeSerialNumber.getFresh();
+        this.value = value;
+    }
 
-		/*******************************/
-		/* COPY INPUT DATA MEMBERS ... */
-		/*******************************/
-		this.value = value;
-	}
-
-	/************************************************/
-	/* The printing message for an int exp AST node */
-	/************************************************/
-	public void printMe()
-	{
-		/*******************************/
-		/* AST NODE TYPE = AST INT EXP */
-		/*******************************/
-		System.out.format("AST NODE INT( %d )\n",value);
-
-		/*********************************/
-		/* Print to AST GRAPHVIZ DOT file */
-		/*********************************/
-		AstGraphviz.getInstance().logNode(
-				serialNumber,
-			String.format("INT(%d)",value));
-	}
+	@Override
+    public void printMe() {
+        AstGraphviz.getInstance().logNode(serialNumber, String.format("int (%d)", value));
+    }
 }
