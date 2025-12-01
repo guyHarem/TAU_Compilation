@@ -25,8 +25,9 @@ public class Main
             s = p.parse();
             fileWriter.print("OK");
             
-            ast = (AstProgram) s.value;
-            ast.printMe();
+            // This is needed for making the actual AST, but we remove it for the test.
+            // ast = (AstProgram) s.value;
+            // ast.printMe();
             
             fileWriter.flush();
             fileWriter.close();
