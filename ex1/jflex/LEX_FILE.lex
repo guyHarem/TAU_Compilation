@@ -74,18 +74,17 @@ import java_cup.runtime.*;
 LineTerminator	= \r|\n|\r\n
 WhiteSpace		= {LineTerminator} | [ \t]
 INTEGER			= 0 | [1-9][0-9]*
-INVALID_NUMBER = 0[0-9]+ //NOT ALLOWING INT TO START WITH 0
+INVALID_NUMBER = 0[0-9]+
 IDENTIFIER		= [a-zA-Z][a-zA-Z0-9]*
 STRING_TEXT		= [a-zA-Z]*
 STRING			= \"{STRING_TEXT}\"
-// INVALID_STRING	= \"[^\"]*\"  // Any string that contains any character (invalid strings will be caught)
 DOLLAR_SIGN  	= \$
 
 /* Comment characters: letters, digits, white spaces, ( ) [ ] { } ? ! + - * / . ; */
 
 /* For line comments: everything except newlines */
 LINE_COMMENT_CHAR = [a-zA-Z0-9 \t()\[\]{}?!+\-*\/.;]
-LINE_COMMENT    = "//" {LINE_COMMENT_CHAR}* {LineTerminator} //ADDED LINE TERMINATOR
+LINE_COMMENT    = "//" {LINE_COMMENT_CHAR}* {LineTerminator}
 
 
 /* For block comments: everything including newlines */
@@ -149,9 +148,12 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 {LINE_COMMENT}		{ /* just skip, do nothing */ }
 {BLOCK_COMMENT}		{ /* just skip, do nothing */ }
 
+/* Catch invalid comments as a single ERROR token */
+"//" { return symbol(TokenNames.LEX_ERROR, "ERROR"); }
+"/*" { return symbol(TokenNames.LEX_ERROR, "ERROR"); }
 
 /* Invalid numbers with leading zeros - MUST COME BEFORE INTEGER!*/
-{INVALID_NUMBER}	{return symbol(TokenNames.ERROR, "ERROR");}
+{INVALID_NUMBER}	{return symbol(TokenNames.LEX_ERROR, "ERROR");}
 
 /* Integers - validate range */
 {INTEGER}			{
@@ -162,14 +164,14 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 							}
 							return symbol(TokenNames.INT, "INT(" + val + ")[" + getLine() + "," + getTokenStartPosition() + "]");
 						} catch (NumberFormatException e) { //Either number it too large for Java, or exeecds L language limit
-							return symbol(TokenNames.ERROR, "ERROR");
+							return symbol(TokenNames.LEX_ERROR, "ERROR");
 						}
 }
 
 /* Strings */
 {STRING}			{ return symbol(TokenNames.STRING, "STRING(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]"); }
 
-// {INVALID_STRING}	{return symbol(TokenNames.ERROR, "ERROR");}
+// {INVALID_STRING}	{return symbol(TokenNames.LEX_ERROR, "ERROR");}
 
 /* Identifiers - must come after keywords */
 {IDENTIFIER}		{ return symbol(TokenNames.ID, "ID(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]"); }
@@ -182,6 +184,6 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 <<EOF>>             { return symbol(TokenNames.EOF); }
 
 /* Error - anything else is a lexical error */
-.					{ return symbol(TokenNames.ERROR, "ERROR"); }
+.					{ return symbol(TokenNames.LEX_ERROR, "ERROR"); }
 
 }

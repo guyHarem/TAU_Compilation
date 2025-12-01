@@ -34,15 +34,7 @@ public class Main
         }
         catch (Exception e)
         {
-            if (e.getMessage() != null && e.getMessage().equals("LEX_ERROR")) {
-               try {
-                   PrintWriter pw = new PrintWriter(outputFileName);
-                   pw.print("ERROR");
-                   pw.close();
-               } catch (FileNotFoundException fnf) { fnf.printStackTrace(); }
-            } else {
-                e.printStackTrace();
-            }
+            e.printStackTrace();
         }
     }
 }

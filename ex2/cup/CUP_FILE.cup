@@ -19,16 +19,20 @@ parser code
         this.fileWriter = fileWriter;
         this.lastTokenLine = 0;    // Restored initialization
     }
-
+    
     public void report_error(String message, Object info)
     {
-        // Write "ERROR(line)" to the file if a syntax error occurs
+        /*
+        1. Check if the error was caused by our specific "Lexical Error" token
+        2. Otherwise, it is a true Syntax Error (unexpected valid token)
+        */
         if (fileWriter != null) {
-            fileWriter.print("ERROR(" + lexer.getLine() + ")");
-            fileWriter.close();
+                if (info instanceof Symbol && ((Symbol)info).sym == TokenNames.LEX_ERROR) fileWriter.print("ERROR"); 
+                else fileWriter.print("ERROR(" + lexer.getLine() + ")");
         }
+        fileWriter.close();
         System.exit(0);
-    }
+}
 :}
 
 /************************/
@@ -44,6 +48,7 @@ scan with
 /*************/
 /* TERMINALS */
 /*************/
+terminal LEX_ERROR;
 terminal CLASS;
 terminal ELSE;
 terminal EXTENDS;
