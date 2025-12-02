@@ -62,7 +62,7 @@ STRING_TEXT    = [a-zA-Z]*
 STRING         = \"{STRING_TEXT}\"
 DOLLAR_SIGN    = \$
 LINE_COMMENT_CHAR  = [a-zA-Z0-9 \t()\[\]{}?!+\-*\/.;]
-LINE_COMMENT       = "//" {LINE_COMMENT_CHAR}* {LineTerminator}
+LINE_COMMENT   = "//" {LINE_COMMENT_CHAR}*
 BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
 BLOCK_COMMENT      = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 
@@ -148,10 +148,6 @@ BLOCK_COMMENT      = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 
     /* Whitespace - skip */
     {WhiteSpace} { debug("WhiteSpace (Skipped)"); /* skip */ }
-
-    /* End of file markers */
-    {DOLLAR_SIGN} { debug("DOLLAR_SIGN"); return symbol(TokenNames.EOF); }
-    <<EOF>>       { debug("EOF");          return symbol(TokenNames.EOF); }
 
     /* Catch-all: any unrecognized character is a lexical error */
     . { debug("CATCH-ALL (NO MATCH)"); throw new RuntimeException("LEX_ERROR"); }
