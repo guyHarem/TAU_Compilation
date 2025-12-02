@@ -5,13 +5,11 @@ import java_cup.runtime.*;
 import ast.*;
 import java.util.*;
 import java.io.PrintWriter;
-
-parser code 
+parser code
 {:
     public Lexer lexer;
     public int lastTokenLine;      // Restored this missing variable
     public PrintWriter fileWriter; // Kept this for the output file
-
     public Parser(Lexer lexer, PrintWriter fileWriter)
     {
         super(lexer);
@@ -19,32 +17,46 @@ parser code
         this.fileWriter = fileWriter;
         this.lastTokenLine = 0;    // Restored initialization
     }
-    
+   
     public void report_error(String message, Object info)
     {
         /*
-        1. Check if the error was caused by our specific "Lexical Error" token
-        2. Otherwise, it is a true Syntax Error (unexpected valid token)
+        * This method is now exclusively for true Syntax Errors (unexpected valid token).
+        * Lexical errors are handled immediately in the 'scan with' block.
         */
         if (fileWriter != null) {
-                if (info instanceof Symbol && ((Symbol)info).sym == TokenNames.LEX_ERROR) fileWriter.print("ERROR"); 
-                else fileWriter.print("ERROR(" + lexer.getLine() + ")");
+            fileWriter.print("ERROR(" + lexer.getLine() + ")");
         }
         fileWriter.close();
         System.exit(0);
-}
+    }
 :}
-
 /************************/
 /* CUSTOMIZE CUP PARSER */
 /************************/
 scan with
 {:
-    Symbol s = lexer.next_token();
+    Symbol s = null;
+    try {
+        // Attempt to get the next token from the lexer
+        s = lexer.next_token();
+    } catch (RuntimeException e) {
+        // CATCH BLOCK: Catches the specific exception thrown by the lexer for fatal errors
+        if (e.getMessage() != null && e.getMessage().equals("LEX_ERROR")) {
+            if (fileWriter != null) {
+                fileWriter.print("ERROR"); // Print "ERROR" for lexical error
+            }
+            fileWriter.close();
+            System.exit(0); // Immediately halt execution
+        }
+        // Re-throw any other runtime exception
+        throw e;
+    }
+   
+    // If successful, record the line and return the symbol
     this.lastTokenLine = lexer.getLine();
     return s;
 :};
-
 /*************/
 /* TERMINALS */
 /*************/
@@ -62,7 +74,6 @@ terminal TYPE_VOID;
 terminal COMMA;
 terminal LT;
 terminal GT;
-
 terminal IF;
 terminal EQ;
 terminal DOT;
@@ -79,14 +90,12 @@ terminal LBRACE;
 terminal RBRACE;
 terminal SEMICOLON;
 terminal ASSIGN;
-
 /*************/
 /* TERMINALS */
 /*************/
 terminal String STRING;
 terminal Integer INT;
 terminal String ID;
-
 /*****************/
 /* NON TERMINALS */
 /*****************/
@@ -100,18 +109,15 @@ non terminal AstArrayTypeDef arrayTypedef;
 non terminal AstDec cField;
 non terminal AstExp newExp;
 non terminal AstCallExp callExp;
-
 non terminal AstExp exp;
 non terminal AstVar var;
 non terminal AstStmt stmt;
-
 // Lists (used when we want to have infinite instances of a certain non terminal)
 non terminal AstList<AstDec>    decList;
 non terminal AstList<AstVarDec> argList;
 non terminal AstList<AstDec>    cFieldList;
 non terminal AstList<AstExp>    exprList;
 non terminal AstList<AstStmt>   stmtList;
-
 /***********************/
 /* OPERATOR PRECEDENCE */
 /***********************/
@@ -123,41 +129,34 @@ precedence left TIMES, DIVIDE;
 precedence left LBRACK;
 precedence left LPAREN;
 precedence left DOT;
-
 /************************/
 /* START WITH: program  */
 /************************/
 start with program;
-
 /********************/
 /* DERIVATION RULES */
 /********************/
-
 /* -------------------------------------------------------- */
-/* LISTS                                          			*/
+/* LISTS                                                    */
 /* -------------------------------------------------------- */
-
 /* decList ::= dec { dec } */
 decList     ::=     dec:d decList:l
                     {: RESULT = new AstList<>(d, l, "dec", parser.lastTokenLine); :}
             |       dec:d
                     {: RESULT = new AstList<>(d, null, "dec", parser.lastTokenLine); :}
             ;
-
 /* stmtList ::= stmt { stmt } */
 stmtList    ::=     stmt:s stmtList:l
                     {: RESULT = new AstList<>(s, l, "stmt", parser.lastTokenLine); :}
             |       stmt:s
                     {: RESULT = new AstList<>(s, null, "stmt", parser.lastTokenLine); :}
             ;
-
 /* cFieldList ::= cField { cField } */
 cFieldList  ::=     cField:f cFieldList:l
                     {: RESULT = new AstList<>(f, l, "cField", parser.lastTokenLine); :}
             |       cField:f
                     {: RESULT = new AstList<>(f, null, "cField", parser.lastTokenLine); :}
             ;
-
 /* argList ::= type ID { COMMA type ID } */
 /* Note: We wrap the type/ID into an AstVarDec (uninitialized variable decleration) to store it in the list */
 argList     ::=     type:t ID:name COMMA argList:l
@@ -165,41 +164,33 @@ argList     ::=     type:t ID:name COMMA argList:l
             |       type:t ID:name
                     {: RESULT = new AstList<>(new AstVarDec(t, name, null, parser.lastTokenLine), null, "arg", parser.lastTokenLine); :}
             ;
-
 /* exprList ::= exp { COMMA exp } */
 exprList    ::=     exp:e COMMA exprList:l
                     {: RESULT = new AstList<>(e, l, "exp", parser.lastTokenLine); :}
             |       exp:e
                     {: RESULT = new AstList<>(e, null, "exp", parser.lastTokenLine); :}
             ;
-
-
 /* -------------------------------------------------------- */
-/* DECLARATIONS                                          	*/
+/* DECLARATIONS                                             */
 /* -------------------------------------------------------- */
-
 /* program ::= decList */
 program     ::=     decList:l {: RESULT = new AstProgram(l, parser.lastTokenLine); :}
-					;
-
+                                ;
 /* dec ::= varDec | funcDec | classDec | arrayTypedef */
 dec         ::=     varDec:v        {: RESULT = v; :}
             |       funcDec:f       {: RESULT = f; :}
             |       classDec:c      {: RESULT = c; :}
             |       arrayTypedef:a  {: RESULT = a; :}
-			;
-
+                        ;
 /* type ::= TYPE_INT | TYPE_STRING | TYPE_VOID | ID */
 type        ::=     TYPE_INT        {: RESULT = new AstType("int", parser.lastTokenLine); :}
             |       TYPE_STRING     {: RESULT = new AstType("String", parser.lastTokenLine); :}
             |       TYPE_VOID       {: RESULT = new AstType("void", parser.lastTokenLine); :}
             |       ID:name         {: RESULT = new AstType(name, parser.lastTokenLine); :}
             ;
-
 /* arrayTypedef ::= ARRAY ID EQ type LBRACK RBRACK SEMICOLON */
 arrayTypedef ::=    ARRAY ID:name EQ type:t LBRACK RBRACK SEMICOLON {: RESULT = new AstArrayTypeDef(name, t, parser.lastTokenLine); :}
-                    ;
-
+                   ;
 /* varDec ::= type ID [ ASSIGN exp ] SEMICOLON | type ID ASSIGN newExp SEMICOLON */
 varDec      ::=     type:t ID:name SEMICOLON
                     {: RESULT = new AstVarDec(t, name, null, parser.lastTokenLine); :}
@@ -208,30 +199,25 @@ varDec      ::=     type:t ID:name SEMICOLON
             |       type:t ID:name ASSIGN newExp:e SEMICOLON
                     {: RESULT = new AstVarDec(t, name, e, parser.lastTokenLine); :}
             ;
-
 /* funcDec ::= type ID LPAREN [ type ID { COMMA type ID } ] RPAREN LBRACE stmtList RBRACE */
 funcDec     ::=     type:ret ID:name LPAREN RPAREN LBRACE stmtList:body RBRACE
                     {: RESULT = new AstFuncDec(ret, name, null, body, parser.lastTokenLine); :}
             |       type:ret ID:name LPAREN argList:args RPAREN LBRACE stmtList:body RBRACE
                     {: RESULT = new AstFuncDec(ret, name, args, body, parser.lastTokenLine); :}
             ;
-
 /* classDec ::= CLASS ID [ EXTENDS ID ] LBRACE cField { cField } RBRACE */
 classDec    ::=     CLASS ID:name LBRACE cFieldList:fields RBRACE
                     {: RESULT = new AstClassDec(name, null, fields, parser.lastTokenLine); :}
             |       CLASS ID:name EXTENDS ID:parent LBRACE cFieldList:fields RBRACE
                     {: RESULT = new AstClassDec(name, parent, fields, parser.lastTokenLine); :}
             ;
-
 /* cField ::= varDec | funcDec */
 cField      ::=     varDec:v {: RESULT = v; :}
             |       funcDec:f {: RESULT = f; :}
             ;
-
 /* -------------------------------------------------------- */
 /* 4. STATEMENTS                                            */
 /* -------------------------------------------------------- */
-
 /*
 stmt ::= varDec
 | var ASSIGN exp SEMICOLON
@@ -260,19 +246,15 @@ stmt        ::=     varDec:v
             |       callExp:c SEMICOLON
                     {: RESULT = new AstStmtCall(c, parser.lastTokenLine); :}
             ;
-
-
 /* -------------------------------------------------------- */
-/* EXPRESSIONS                                           	*/
+/* EXPRESSIONS                                              */
 /* -------------------------------------------------------- */
-
 /* newExp ::= NEW type | NEW type LBRACK exp RBRACK */
 newExp      ::=     NEW type:t
                     {: RESULT = new AstNewExp(t, parser.lastTokenLine); :}
             |       NEW type:t LBRACK exp:size RBRACK
                     {: RESULT = new AstNewExpArray(t, size, parser.lastTokenLine); :}
             ;
-
 /* callExp ::= [ var DOT ] ID LPAREN [ exp { COMMA exp } ] RPAREN */
 callExp     ::=     ID:name LPAREN RPAREN
                     {: RESULT = new AstCallExp(null, name, null, parser.lastTokenLine); :}
@@ -283,7 +265,6 @@ callExp     ::=     ID:name LPAREN RPAREN
             |       var:v DOT ID:name LPAREN exprList:args RPAREN
                     {: RESULT = new AstCallExp(v, name, args, parser.lastTokenLine); :}
             ;
-
 /* var ::= ID | var DOT ID | var LBRACK exp RBRACK */
 var         ::=     ID:name
                     {: RESULT = new AstVarSimple(name, parser.lastTokenLine); :}
@@ -292,9 +273,8 @@ var         ::=     ID:name
             |       var:v LBRACK exp:index RBRACK
                     {: RESULT = new AstVarSubscript(v, index, parser.lastTokenLine); :}
             ;
-
 /* exp ::= var | LPAREN exp RPAREN | exp (PLUS | MINUS | TIMES | DIVIDE | LT | GT | EQ) exp | callExp | [ MINUS ] INT | NIL | STRING */
-exp         ::=     var:v               {: RESULT = new AstExpVar(v, parser.lastTokenLine); :}
+exp        ::=     var:v               {: RESULT = new AstExpVar(v, parser.lastTokenLine); :}
             |       LPAREN exp:e RPAREN {: RESULT = e; :}
             /* Binary Operations - Precedence handled by CUP */
             |       exp:e1 PLUS exp:e2  {: RESULT = new AstExpBinop(e1, e2, 0, parser.lastTokenLine); :}
@@ -307,7 +287,7 @@ exp         ::=     var:v               {: RESULT = new AstExpVar(v, parser.last
             /* Literals and Calls */
             |       callExp:c           {: RESULT = c; :}
             |       INT:i               {: RESULT = new AstExpInt(i, parser.lastTokenLine); :}
-            |       MINUS INT:i         {: RESULT = new AstExpInt(-i, parser.lastTokenLine); :} 
+            |       MINUS INT:i         {: RESULT = new AstExpInt(-i, parser.lastTokenLine); :}
             |       NIL                 {: RESULT = new AstExpNil(parser.lastTokenLine); :}
             |       STRING:s            {: RESULT = new AstExpString(s, parser.lastTokenLine); :}
             ;
