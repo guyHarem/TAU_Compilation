@@ -1,1 +1,12 @@
-ERROR
+TYPE_INT[2,1]
+ID(x)[2,5]
+SEMICOLON[2,6]
+TYPE_INT[6,1]
+ID(y)[6,5]
+SEMICOLON[6,6]
+TYPE_INT[6,35]
+ID(z)[6,39]
+SEMICOLON[6,40]
+ID(Comment)[7,1]
+ID(at)[7,9]
+ID(end)[7,12]

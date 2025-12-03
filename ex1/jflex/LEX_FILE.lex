@@ -87,10 +87,11 @@ DOLLAR_SIGN  	= \$
 LINE_COMMENT_CHAR = [a-zA-Z0-9 \t()\[\]{}?!+\-*\/.;]
 LINE_COMMENT    = "//" {LINE_COMMENT_CHAR}* {LineTerminator} //ADDED LINE TERMINATOR
 
-
 /* For block comments: everything including newlines */
 BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
-BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
+
+/* Define a new state for handling block comments */
+%state BLOCK_COMMENT_STATE
 
 /******************************/
 /* DOLLAR DOLLAR - DON'T TOUCH! */
@@ -109,6 +110,12 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 /**************************************************************/
 
 <YYINITIAL> {
+
+/* Start of block comment -> Switch to COMMENT state */
+    "/*"            { yybegin(BLOCK_COMMENT_STATE); }
+
+    /* Line comments - ignored */
+    {LINE_COMMENT}	{ /* just skip, do nothing */ }
 
 /* Keywords - must come before IDENTIFIER */
 "class"				{ return symbol(TokenNames.CLASS, "CLASS[" + getLine() + "," + getTokenStartPosition() + "]"); }
@@ -145,11 +152,6 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 "."					{ return symbol(TokenNames.DOT, "DOT[" + getLine() + "," + getTokenStartPosition() + "]"); }
 ";"					{ return symbol(TokenNames.SEMICOLON, "SEMICOLON[" + getLine() + "," + getTokenStartPosition() + "]"); }
 
-/* Comments */
-{LINE_COMMENT}		{ /* just skip, do nothing */ }
-{BLOCK_COMMENT}		{ /* just skip, do nothing */ }
-
-
 /* Invalid numbers with leading zeros - MUST COME BEFORE INTEGER!*/
 {INVALID_NUMBER}	{return symbol(TokenNames.ERROR, "ERROR");}
 
@@ -184,4 +186,12 @@ BLOCK_COMMENT   = "/*" {BLOCK_COMMENT_CHAR}* "*/"
 /* Error - anything else is a lexical error */
 .					{ return symbol(TokenNames.ERROR, "ERROR"); }
 
+}
+
+/* BLOCK COMMENT STATE RULES */
+<BLOCK_COMMENT_STATE> {
+    "*/"                    { yybegin(YYINITIAL); } /* End comment: switch back to code */
+    {BLOCK_COMMENT_CHAR}    { /* Valid char: ignore */ }
+    <<EOF>>                 { return symbol(TokenNames.ERROR, "ERROR"); } /* Unclosed comment error */
+    .                       { return symbol(TokenNames.ERROR, "ERROR"); } /* Invalid char error */
 }
