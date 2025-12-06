@@ -4,7 +4,6 @@ public class AstStmtVarDec extends AstStmt {
     public AstVarDec dec;
 
     public AstStmtVarDec(AstVarDec var, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.dec = var;
     }

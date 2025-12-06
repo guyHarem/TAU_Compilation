@@ -5,7 +5,6 @@ public class AstVarSubscript extends AstVar {
     public AstExp subscript;
 
     public AstVarSubscript(AstVar var, AstExp subscript, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.var = var;
         this.subscript = subscript;

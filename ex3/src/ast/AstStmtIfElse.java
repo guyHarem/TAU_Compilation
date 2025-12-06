@@ -6,7 +6,6 @@ public class AstStmtIfElse extends AstStmt {
     public AstList<AstStmt> elseBody;
 
     public AstStmtIfElse(AstExp cond, AstList<AstStmt> body, AstList<AstStmt> elseBody, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.cond = cond;
         this.body = body;

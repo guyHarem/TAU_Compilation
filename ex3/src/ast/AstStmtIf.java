@@ -13,8 +13,6 @@ public class AstStmtIf extends AstStmt
 	/*******************/
 	public AstStmtIf(AstExp cond, AstStmtList body)
 	{
-		super(lineNum);
-
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/

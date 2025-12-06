@@ -4,7 +4,6 @@ public class AstProgram extends AstNode {
     public AstList<AstDec> decList;
 
     public AstProgram(AstList<AstDec> decList, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.decList = decList;
     }

@@ -6,7 +6,6 @@ public class AstList<T extends AstNode> extends AstNode {
     private final String typeName;
 
     public AstList(T head, AstList<T> tail, String typeName, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.head = head;
         this.tail = tail;

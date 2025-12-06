@@ -9,19 +9,6 @@ public abstract class AstNode
 	/*******************************************/
 	public int serialNumber;
 	
-	public static PrintWriter fileWriter;
-	public int line;
-
-	public AstNode(int lineNum){
-		line = lineNum;
-	}
-
-	public void printError() {
-		fileWriter.write("ERROR("+line+")\n");
-		fileWriter.close();
-		System.exit(0);
-	}
-	
 	/***********************************************/
 	/* The default message for an unknown AST node */
 	/***********************************************/

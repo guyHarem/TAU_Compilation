@@ -6,7 +6,6 @@ public class AstVarDec extends AstDec {
     public AstExp exp;
 
     public AstVarDec(AstType type, String name, AstExp exp, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.type = type;
         this.name = name;

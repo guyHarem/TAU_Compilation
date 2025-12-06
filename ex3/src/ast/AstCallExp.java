@@ -6,7 +6,6 @@ public class AstCallExp extends AstExp {
     public AstList<AstExp> args;
 
     public AstCallExp(AstVar var, String funcName, AstList<AstExp> args, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.var = var;
         this.funcName = funcName;

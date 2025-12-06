@@ -5,7 +5,6 @@ public class AstVarField extends AstVar {
     public String fieldName;
 
     public AstVarField(AstVar var, String fieldName, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.var = var;
         this.fieldName = fieldName;

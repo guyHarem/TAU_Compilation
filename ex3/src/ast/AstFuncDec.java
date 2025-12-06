@@ -7,7 +7,6 @@ public class AstFuncDec extends AstDec {
     public AstList<AstStmt> body;
 
     public AstFuncDec(AstType type, String name, AstList<AstVarDec> params, AstList<AstStmt> body, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.type = type;
         this.name = name;

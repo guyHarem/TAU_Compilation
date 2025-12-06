@@ -5,7 +5,6 @@ public class AstArrayTypeDef extends AstDec {
     public AstType type;
 
     public AstArrayTypeDef(String name, AstType type, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.name = name;
         this.type = type;

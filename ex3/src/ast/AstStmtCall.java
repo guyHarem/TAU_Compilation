@@ -12,8 +12,6 @@ public class AstStmtCall extends AstStmt
 	/******************/
 	public AstStmtCall(AstExpCall callExp)
 	{
-		super(lineNum);
-
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/

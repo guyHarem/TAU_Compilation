@@ -15,8 +15,6 @@ public class AstStmtList extends AstNode
 	/******************/
 	public AstStmtList(AstStmt head, AstStmtList tail)
 	{
-		super(lineNum);
-
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/

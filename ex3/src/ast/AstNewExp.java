@@ -4,7 +4,6 @@ public class AstNewExp extends AstExp {
     public AstType type;
 
     public AstNewExp(AstType type, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.type = type;
     }

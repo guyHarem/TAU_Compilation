@@ -5,7 +5,6 @@ public class AstStmtWhile extends AstStmt {
     public AstList<AstStmt> body;
 
     public AstStmtWhile(AstExp cond, AstList<AstStmt> body, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.cond = cond;
         this.body = body;

@@ -6,7 +6,6 @@ public class AstClassDec extends AstDec {
     public AstList<AstDec> fields;
 
     public AstClassDec(String name, String parent, AstList<AstDec> fields, int lineNum) {
-        super(lineNum);
         serialNumber = AstNodeSerialNumber.getFresh();
         this.name = name;
         this.parent = parent;
