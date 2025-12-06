@@ -12,6 +12,8 @@ public class AstStmtCall extends AstStmt
 	/******************/
 	public AstStmtCall(AstExpCall callExp)
 	{
+		super(lineNum);
+
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
@@ -22,7 +24,7 @@ public class AstStmtCall extends AstStmt
 	
 	public void printMe()
 	{
-		callExp.printMe();
+		if (callExp != null) callExp.printMe();
 
 		/***************************************/
 		/* PRINT Node to AST GRAPHVIZ DOT file */
@@ -34,6 +36,6 @@ public class AstStmtCall extends AstStmt
 		/****************************************/
 		/* PRINT Edges to AST GRAPHVIZ DOT file */
 		/****************************************/
-		AstGraphviz.getInstance().logEdge(serialNumber,callExp.serialNumber);
+		if (callExp != null) AstGraphviz.getInstance().logEdge(serialNumber,callExp.serialNumber);
 	}
 }

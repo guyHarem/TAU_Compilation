@@ -12,6 +12,8 @@ public class AstStmtReturn extends AstStmt
 	/*******************/
 	public AstStmtReturn(AstExp exp)
 	{
+		super(lineNum);
+
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
