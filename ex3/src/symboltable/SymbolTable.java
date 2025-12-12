@@ -7,6 +7,7 @@ package symboltable;
 /* GENERAL IMPORTS */
 /*******************/
 import java.io.PrintWriter;
+import java.io.File;
 
 /*******************/
 /* PROJECT IMPORTS */
@@ -229,6 +230,7 @@ public class SymbolTable
 			/*******************************************/
 			/* [1] Open Graphviz text file for writing */
 			/*******************************************/
+			new File(dirname).mkdirs();
 			PrintWriter fileWriter = new PrintWriter(dirname+filename);
 
 			/*********************************/
