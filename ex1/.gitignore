@@ -10,3 +10,5 @@ LEXER
 
 # Test outputs
 output/*.txt
+
+.vscode/settings.json

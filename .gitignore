@@ -1,2 +1,8 @@
 .DS_Store
 **/DS_Store
+
+# MD files
+*.md
+ex1/*.md
+ex2/*.md
+ex3/*.md

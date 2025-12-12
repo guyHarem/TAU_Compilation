@@ -1,0 +1,15 @@
+// Test CLASS-007 - Circular inheritance not allowed
+class A extends B
+{
+    int x;
+}
+
+class B extends A
+{
+    int y;
+}
+
+void main()
+{
+    A a := new A;
+}
