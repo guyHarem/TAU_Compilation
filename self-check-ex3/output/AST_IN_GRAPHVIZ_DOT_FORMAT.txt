@@ -1,0 +1,131 @@
+digraph
+{
+graph [ordering = "out"]
+v0 [label = "type (int)"];
+v1 [label = "INT(8)"];
+v2 [label = "def var (WALK)"];
+v2 -> v0;
+v2 -> v1;
+v3 [label = "type (string)"];
+v4 [label = "STRING
+'RUN'"];
+v5 [label = "def var (RUN)"];
+v5 -> v3;
+v5 -> v4;
+v6 [label = "cField list"];
+v6 -> v5;
+v7 [label = "cField list"];
+v7 -> v2;
+v7 -> v6;
+v8 [label = "def class (Grandfather)
+extends (null)"];
+v8 -> v7;
+v9 [label = "type (Father)"];
+v10 [label = "nil"];
+v11 [label = "def var (g)"];
+v11 -> v9;
+v11 -> v10;
+v12 [label = "cField list"];
+v12 -> v11;
+v13 [label = "def class (Father)
+extends (Grandfather)"];
+v13 -> v12;
+v14 [label = "type (Son)"];
+v15 [label = "def var (swim)"];
+v15 -> v14;
+v16 [label = "type (int)"];
+v17 [label = "def var (iii)"];
+v17 -> v16;
+v18 [label = "cField list"];
+v18 -> v17;
+v19 [label = "cField list"];
+v19 -> v15;
+v19 -> v18;
+v20 [label = "def class (Son)
+extends (Father)"];
+v20 -> v19;
+v21 [label = "type (Grandfather)"];
+v22 [label = "def array (WisePeople)"];
+v22 -> v21;
+v23 [label = "type (void)"];
+v24 [label = "type (Father)"];
+v25 [label = "type (Father)"];
+v26 [label = "new"];
+v26 -> v25;
+v27 [label = "def var (g)"];
+v27 -> v24;
+v27 -> v26;
+v28 [label = "var dec stmt"];
+v28 -> v27;
+v29 [label = "var (g)"];
+v30 [label = "field (g)"];
+v30 -> v29;
+v31 [label = "type (Son)"];
+v32 [label = "new"];
+v32 -> v31;
+v33 [label = "ASSIGN
+left := right
+"];
+v33 -> v30;
+v33 -> v32;
+v34 [label = "type (WisePeople)"];
+v35 [label = "type (Grandfather)"];
+v36 [label = "var (g)"];
+v37 [label = "field (RUN)"];
+v37 -> v36;
+v38 [label = "var exp"];
+v38 -> v37;
+v40 [label = "new array"];
+v40 -> v35;
+v40 -> v38;
+v41 [label = "def var (wp)"];
+v41 -> v34;
+v41 -> v40;
+v42 [label = "var dec stmt"];
+v42 -> v41;
+v43 [label = "var (wp)"];
+v44 [label = "var (g)"];
+v45 [label = "var exp"];
+v45 -> v44;
+v46 [label = "subscript var"];
+v46 -> v43;
+v46 -> v45;
+v47 [label = "var (g)"];
+v48 [label = "var exp"];
+v48 -> v47;
+v49 [label = "ASSIGN
+left := right
+"];
+v49 -> v46;
+v49 -> v48;
+v50 [label = "stmt list"];
+v50 -> v49;
+v51 [label = "stmt list"];
+v51 -> v42;
+v51 -> v50;
+v52 [label = "stmt list"];
+v52 -> v33;
+v52 -> v51;
+v53 [label = "stmt list"];
+v53 -> v28;
+v53 -> v52;
+v54 [label = "def func (main)"];
+v54 -> v23;
+v54 -> v53;
+v55 [label = "dec list"];
+v55 -> v54;
+v56 [label = "dec list"];
+v56 -> v22;
+v56 -> v55;
+v57 [label = "dec list"];
+v57 -> v20;
+v57 -> v56;
+v58 [label = "dec list"];
+v58 -> v13;
+v58 -> v57;
+v59 [label = "dec list"];
+v59 -> v8;
+v59 -> v58;
+v60 [label = "Program"];
+v60 -> v59;
+}
