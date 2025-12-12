@@ -6,12 +6,12 @@ import symboltable.*;
 public class AstStmtIf extends AstStmt
 {
 	public AstExp cond;
-	public AstStmtList body;
+	public AstList<AstStmt> body;
 
 	/*******************/
 	/*  CONSTRUCTOR(S) */
 	/*******************/
-	public AstStmtIf(AstExp cond, AstStmtList body)
+	public AstStmtIf(AstExp cond, AstList<AstStmt> body, int lineNum)
 	{
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
@@ -20,6 +20,7 @@ public class AstStmtIf extends AstStmt
 
 		this.cond = cond;
 		this.body = body;
+		this.line = lineNum;
 	}
 
 	/****************************************************/
@@ -59,9 +60,9 @@ public class AstStmtIf extends AstStmt
 		/****************************/
 		if (cond.semantMe() != TypeInt.getInstance())
 		{
-			System.out.format(">> ERROR [%d:%d] condition inside IF is not integral\n",2,2);
+			throw new SemanticError(cond.line, "if condition must be int");
 		}
-		
+
 		/*************************/
 		/* [1] Begin If Scope */
 		/*************************/
@@ -80,6 +81,6 @@ public class AstStmtIf extends AstStmt
 		/***************************************************/
 		/* [4] Return value is irrelevant for if statement */
 		/**************************************************/
-		return null;		
+		return null;
 	}	
 }

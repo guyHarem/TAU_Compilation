@@ -1,4 +1,4 @@
-   
+
 import java.io.*;
 import java.io.PrintWriter;
 import java_cup.runtime.Symbol;
@@ -11,12 +11,11 @@ public class Main
 		Lexer l;
 		Parser p;
 		Symbol s;
-		AstDecList ast;
 		FileReader fileReader;
 		PrintWriter fileWriter;
 		String inputFileName = argv[0];
 		String outputFileName = argv[1];
-		
+
 		try
 		{
 			/********************************/
@@ -28,22 +27,22 @@ public class Main
 			/* [2] Initialize a file writer */
 			/********************************/
 			fileWriter = new PrintWriter(outputFileName);
-			
+
 			/******************************/
 			/* [3] Initialize a new lexer */
 			/******************************/
 			l = new Lexer(fileReader);
-			
+
 			/*******************************/
 			/* [4] Initialize a new parser */
 			/*******************************/
-			p = new Parser(l);
+			p = new Parser(l, fileWriter);
 
 			/***********************************/
 			/* [5] 3 ... 2 ... 1 ... Parse !!! */
 			/***********************************/
-			ast = (AstDecList) p.parse().value;
-			
+			AstProgram ast = (AstProgram) p.parse().value;
+
 			/*************************/
 			/* [6] Print the AST ... */
 			/*************************/
@@ -52,19 +51,31 @@ public class Main
 			/**************************/
 			/* [7] Semant the AST ... */
 			/**************************/
-			ast.semantMe();
-			
+			try {
+				ast.semantMe();
+
+				/**************************************/
+				/* [8] No errors - write OK to output */
+				/**************************************/
+				fileWriter.print("OK");
+			} catch (SemanticError e) {
+				/*****************************************/
+				/* [8] Semantic error - write ERROR(line) */
+				/*****************************************/
+				fileWriter.print("ERROR(" + e.getLine() + ")");
+			}
+
 			/*************************/
-			/* [8] Close output file */
+			/* [9] Close output file */
 			/*************************/
 			fileWriter.close();
 
 			/*************************************/
-			/* [9] Finalize AST GRAPHIZ DOT file */
+			/* [10] Finalize AST GRAPHIZ DOT file */
 			/*************************************/
 			AstGraphviz.getInstance().finalizeFile();
     	}
-			     
+
 		catch (Exception e)
 		{
 			e.printStackTrace();

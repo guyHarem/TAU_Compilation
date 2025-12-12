@@ -92,6 +92,7 @@ terminal LBRACE;
 terminal RBRACE;
 terminal SEMICOLON;
 terminal ASSIGN;
+terminal ERROR;
 
 /*************/
 /* TERMINALS */
@@ -202,7 +203,7 @@ dec         ::=     varDec:v        {: RESULT = v; :}
 
 /* type ::= TYPE_INT | TYPE_STRING | TYPE_VOID | ID */
 type        ::=     TYPE_INT        {: RESULT = new AstType("int", parser.lastTokenLine); :}
-            |       TYPE_STRING     {: RESULT = new AstType("String", parser.lastTokenLine); :}
+            |       TYPE_STRING     {: RESULT = new AstType("string", parser.lastTokenLine); :}
             |       TYPE_VOID       {: RESULT = new AstType("void", parser.lastTokenLine); :}
             |       ID:name         {: RESULT = new AstType(name, parser.lastTokenLine); :}
             ;
@@ -213,11 +214,11 @@ arrayTypedef ::=    ARRAY ID:name EQ type:t LBRACK RBRACK SEMICOLON {: RESULT = 
 
 /* varDec ::= type ID [ ASSIGN exp ] SEMICOLON | type ID ASSIGN newExp SEMICOLON */
 varDec      ::=     type:t ID:name SEMICOLON
-                    {: RESULT = new AstVarDec(t, name, null, parser.lastTokenLine); :}
+                    {: RESULT = new AstVarDec(t, name, null, t.line); :}
             |       type:t ID:name ASSIGN exp:e SEMICOLON
-                    {: RESULT = new AstVarDec(t, name, e, parser.lastTokenLine); :}
+                    {: RESULT = new AstVarDec(t, name, e, t.line); :}
             |       type:t ID:name ASSIGN newExp:e SEMICOLON
-                    {: RESULT = new AstVarDec(t, name, e, parser.lastTokenLine); :}
+                    {: RESULT = new AstVarDec(t, name, e, t.line); :}
             ;
 
 /* funcDec ::= type ID LPAREN [ type ID { COMMA type ID } ] RPAREN LBRACE stmtList RBRACE */
@@ -228,10 +229,10 @@ funcDec     ::=     type:ret ID:name LPAREN RPAREN LBRACE stmtList:body RBRACE
             ;
 
 /* classDec ::= CLASS ID [ EXTENDS ID ] LBRACE cField { cField } RBRACE */
-classDec    ::=     CLASS ID:name LBRACE cFieldList:fields RBRACE
-                    {: RESULT = new AstClassDec(name, null, fields, parser.lastTokenLine); :}
-            |       CLASS ID:name EXTENDS ID:parent LBRACE cFieldList:fields RBRACE
-                    {: RESULT = new AstClassDec(name, parent, fields, parser.lastTokenLine); :}
+classDec    ::=     CLASS:c ID:name LBRACE cFieldList:fields RBRACE
+                    {: RESULT = new AstClassDec(name, null, fields, cleft + 1); :}
+            |       CLASS:c ID:name EXTENDS ID:parent LBRACE cFieldList:fields RBRACE
+                    {: RESULT = new AstClassDec(name, parent, fields, cleft + 1); :}
             ;
 
 /* cField ::= varDec | funcDec */
@@ -255,13 +256,13 @@ stmt ::= varDec
 stmt        ::=     varDec:v
                     {: RESULT = new AstStmtVarDec(v, parser.lastTokenLine); :}
             |       var:v ASSIGN exp:e SEMICOLON
-                    {: RESULT = new AstStmtAssign(v, e, parser.lastTokenLine); :}
+                    {: RESULT = new AstStmtAssign(v, e, v.line); :}
             |       var:v ASSIGN newExp:e SEMICOLON
-                    {: RESULT = new AstStmtAssign(v, e, parser.lastTokenLine); :}
+                    {: RESULT = new AstStmtAssign(v, e, v.line); :}
             |       RETURN SEMICOLON
                     {: RESULT = new AstStmtReturn(null, parser.lastTokenLine); :}
             |       RETURN exp:e SEMICOLON
-                    {: RESULT = new AstStmtReturn(e, parser.lastTokenLine); :}
+                    {: RESULT = new AstStmtReturn(e, e.line); :}
             |       IF LPAREN exp:cond RPAREN LBRACE stmtList:body RBRACE
                     {: RESULT = new AstStmtIf(cond, body, parser.lastTokenLine); :}
             |       IF LPAREN exp:cond RPAREN LBRACE stmtList:body RBRACE ELSE LBRACE stmtList:elseBody RBRACE

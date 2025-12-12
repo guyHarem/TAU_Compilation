@@ -11,4 +11,13 @@ public abstract class AstExp extends AstNode
 	{
 		return null;
 	}
+
+	/***********************************************/
+	/* Evaluate constant expression. Returns null  */
+	/* if expression is not a compile-time constant */
+	/***********************************************/
+	public Integer evaluateConstant()
+	{
+		return null;  // Override in subclasses
+	}
 }

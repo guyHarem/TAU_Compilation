@@ -86,7 +86,7 @@ public class SymbolTable
 	public Type find(String name)
 	{
 		SymbolTableEntry e;
-				
+
 		for (e = table[hash(name)]; e != null; e = e.next)
 		{
 			if (name.equals(e.name))
@@ -94,7 +94,73 @@ public class SymbolTable
 				return e.type;
 			}
 		}
-		
+
+		return null;
+	}
+
+	/***********************************************/
+	/* Find name ONLY in the current scope         */
+	/***********************************************/
+	public Type findInCurrentScope(String name)
+	{
+		// Traverse from top down to the nearest SCOPE-BOUNDARY
+		for (SymbolTableEntry e = top; e != null; e = e.prevtop)
+		{
+			if (e.name.equals("SCOPE-BOUNDARY"))
+			{
+				// Hit scope boundary - not found in current scope
+				return null;
+			}
+			if (name.equals(e.name))
+			{
+				return e.type;
+			}
+		}
+		return null;
+	}
+
+	/***********************************************/
+	/* Find name in all nested scopes (not global) */
+	/* Global scope = entries before any SCOPE-BOUNDARY */
+	/***********************************************/
+	public Type findExcludingGlobal(String name)
+	{
+		// First, count total scope boundaries
+		int totalBoundaries = 0;
+		for (SymbolTableEntry e = top; e != null; e = e.prevtop)
+		{
+			if (e.name.equals("SCOPE-BOUNDARY"))
+			{
+				totalBoundaries++;
+			}
+		}
+
+		// If no boundaries, everything is global
+		if (totalBoundaries == 0)
+		{
+			return null;
+		}
+
+		// Search, stopping when we've crossed all boundaries (entering global)
+		int boundariesCrossed = 0;
+		for (SymbolTableEntry e = top; e != null; e = e.prevtop)
+		{
+			if (e.name.equals("SCOPE-BOUNDARY"))
+			{
+				boundariesCrossed++;
+				if (boundariesCrossed == totalBoundaries)
+				{
+					// About to enter global scope, stop
+					return null;
+				}
+				continue;
+			}
+			if (name.equals(e.name))
+			{
+				// Found in nested scope (not global)
+				return e.type;
+			}
+		}
 		return null;
 	}
 
@@ -126,23 +192,25 @@ public class SymbolTable
 	public void endScope()
 	{
 		/**************************************************************************/
-		/* Pop elements from the symbol table stack until a SCOPE-BOUNDARY is hit */		
+		/* Pop elements from the symbol table stack until a SCOPE-BOUNDARY is hit */
 		/**************************************************************************/
-		while (top.name != "SCOPE-BOUNDARY")
+		while (top != null && !"SCOPE-BOUNDARY".equals(top.name))
 		{
 			table[top.index] = top.next;
 			topIndex = topIndex -1;
 			top = top.prevtop;
 		}
 		/**************************************/
-		/* Pop the SCOPE-BOUNDARY sign itself */		
+		/* Pop the SCOPE-BOUNDARY sign itself */
 		/**************************************/
-		table[top.index] = top.next;
-		topIndex = topIndex -1;
-		top = top.prevtop;
+		if (top != null) {
+			table[top.index] = top.next;
+			topIndex = topIndex -1;
+			top = top.prevtop;
+		}
 
 		/*********************************************/
-		/* Print the symbol table after every change */		
+		/* Print the symbol table after every change */
 		/*********************************************/
 		printMe();
 	}
@@ -225,15 +293,34 @@ public class SymbolTable
 		}		
 	}
 	
-	/**************************************/
-	/* USUAL SINGLETON IMPLEMENTATION ... */
-	/**************************************/
 	private static SymbolTable instance = null;
+
+	/****************************************/
+	/* Current function context for return  */
+	/****************************************/
+	private TypeFunction currentFunction = null;
+
+	/****************************************/
+	/* Current class context for members    */
+	/****************************************/
+	private TypeClass currentClass = null;
 
 	/*****************************/
 	/* PREVENT INSTANTIATION ... */
 	/*****************************/
 	protected SymbolTable() {}
+
+	/****************************************/
+	/* Function context for return checking */
+	/****************************************/
+	public void setCurrentFunction(TypeFunction f) { currentFunction = f; }
+	public TypeFunction getCurrentFunction() { return currentFunction; }
+
+	/****************************************/
+	/* Class context for member registration */
+	/****************************************/
+	public void setCurrentClass(TypeClass c) { currentClass = c; }
+	public TypeClass getCurrentClass() { return currentClass; }
 
 	/******************************/
 	/* GET SINGLETON INSTANCE ... */
@@ -254,8 +341,9 @@ public class SymbolTable
 			instance.enter("string", TypeString.getInstance());
 
 			/*************************************/
-			/* [2] How should we handle void ??? */
+			/* [2] Enter void type               */
 			/*************************************/
+			instance.enter("void", TypeVoid.getInstance());
 
 			/***************************************/
 			/* [3] Enter library function PrintInt */
@@ -268,7 +356,19 @@ public class SymbolTable
 					new TypeList(
 						TypeInt.getInstance(),
 						null)));
-			
+
+			/******************************************/
+			/* [4] Enter library function PrintString */
+			/******************************************/
+			instance.enter(
+				"PrintString",
+				new TypeFunction(
+					TypeVoid.getInstance(),
+					"PrintString",
+					new TypeList(
+						TypeString.getInstance(),
+						null)));
+
 		}
 		return instance;
 	}

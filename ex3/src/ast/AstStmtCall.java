@@ -1,16 +1,18 @@
 package ast;
 
+import types.*;
+
 public class AstStmtCall extends AstStmt
 {
 	/****************/
 	/* DATA MEMBERS */
 	/****************/
-	public AstExpCall callExp;
-	
+	public AstCallExp callExp;
+
 	/******************/
 	/* CONSTRUCTOR(S) */
 	/******************/
-	public AstStmtCall(AstExpCall callExp)
+	public AstStmtCall(AstCallExp callExp, int lineNum)
 	{
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
@@ -18,8 +20,9 @@ public class AstStmtCall extends AstStmt
 		serialNumber = AstNodeSerialNumber.getFresh();
 
 		this.callExp = callExp;
+		this.line = lineNum;
 	}
-	
+
 	public void printMe()
 	{
 		if (callExp != null) callExp.printMe();
@@ -30,10 +33,19 @@ public class AstStmtCall extends AstStmt
 		AstGraphviz.getInstance().logNode(
                 serialNumber,
 			String.format("STMT\nCALL"));
-		
+
 		/****************************************/
 		/* PRINT Edges to AST GRAPHVIZ DOT file */
 		/****************************************/
 		if (callExp != null) AstGraphviz.getInstance().logEdge(serialNumber,callExp.serialNumber);
+	}
+
+	@Override
+	public Type semantMe()
+	{
+		if (callExp != null) {
+			callExp.semantMe();
+		}
+		return null;
 	}
 }

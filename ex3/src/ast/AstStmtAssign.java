@@ -1,35 +1,32 @@
 package ast;
 
 import types.*;
+import symboltable.*;
 
 public class AstStmtAssign extends AstStmt
 {
 	/***************/
 	/*  var := exp */
 	/***************/
-	public AstExpVar var;
+	public AstVar var;
 	public AstExp exp;
 
 	/*******************/
 	/*  CONSTRUCTOR(S) */
 	/*******************/
-	public AstStmtAssign(AstExpVar var, AstExp exp)
+	public AstStmtAssign(AstVar var, AstExp exp, int line)
 	{
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
 
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.print("====================== stmt -> var ASSIGN exp SEMICOLON\n");
-
 		/*******************************/
 		/* COPY INPUT DATA MENBERS ... */
 		/*******************************/
 		this.var = var;
 		this.exp = exp;
+		this.line = line;
 	}
 
 	/*********************************************************/
@@ -54,7 +51,7 @@ public class AstStmtAssign extends AstStmt
 		AstGraphviz.getInstance().logNode(
                 serialNumber,
 			"ASSIGN\nleft := right\n");
-		
+
 		/****************************************/
 		/* PRINT Edges to AST GRAPHVIZ DOT file */
 		/****************************************/
@@ -64,16 +61,54 @@ public class AstStmtAssign extends AstStmt
 
 	public Type semantMe()
 	{
-		Type t1 = null;
-		Type t2 = null;
-		
-		if (var != null) t1 = var.semantMe();
-		if (exp != null) t2 = exp.semantMe();
-		
-		if (t1 != t2)
-		{
-			System.out.format(">> ERROR [%d:%d] type mismatch for var := exp\n",6,6);				
+		Type varType = null;
+		Type expType = null;
+
+		if (var != null) varType = var.semantMe();
+		if (exp != null) expType = exp.semantMe();
+
+		/******************************************/
+		/* Check type compatibility               */
+		/******************************************/
+		if (!isAssignable(varType, expType)) {
+			throw new SemanticError(line, "type mismatch for var := exp");
 		}
 		return null;
+	}
+
+	/******************************************/
+	/* Check if expType can be assigned to varType */
+	/******************************************/
+	private boolean isAssignable(Type varType, Type expType) {
+		// Same type - always OK
+		if (varType == expType) {
+			return true;
+		}
+
+		// nil can be assigned to class or array types
+		if (expType instanceof TypeNil) {
+			return (varType instanceof TypeClass) || (varType instanceof TypeArray);
+		}
+
+		// Class: subclass can be assigned to parent type
+		if (varType instanceof TypeClass && expType instanceof TypeClass) {
+			return ((TypeClass)expType).isDescendantOf((TypeClass)varType);
+		}
+
+		// Array: Different named array types are NOT interchangeable.
+		// But `new T[e]` creates an anonymous array that can be assigned to any matching array type.
+		// Anonymous arrays have names like "int[]" (ending with "[]")
+		if (varType instanceof TypeArray && expType instanceof TypeArray) {
+			TypeArray varArr = (TypeArray) varType;
+			TypeArray expArr = (TypeArray) expType;
+			// If source is anonymous (from new T[e]) and element types match, OK
+			if (expArr.name.endsWith("[]") && varArr.elementType == expArr.elementType) {
+				return true;
+			}
+			// Otherwise must be exact same type (already handled above)
+			return false;
+		}
+
+		return false;
 	}
 }

@@ -162,19 +162,19 @@ BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
 							if( val < 0 || val > 32767){
 								throw new NumberFormatException("Value exceeds L language limit");
 							}
-							return symbol(TokenNames.INT, "INT(" + val + ")[" + getLine() + "," + getTokenStartPosition() + "]");
+							return symbol(TokenNames.INT, val);
 						} catch (NumberFormatException e) { //Either number it too large for Java, or exeecds L language limit
 							return symbol(TokenNames.ERROR, "ERROR");
 						}
 }
 
 /* Strings */
-{STRING}			{ return symbol(TokenNames.STRING, "STRING(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]"); }
+{STRING}			{ return symbol(TokenNames.STRING, yytext()); }
 
 // {INVALID_STRING}	{return symbol(TokenNames.ERROR, "ERROR");}
 
 /* Identifiers - must come after keywords */
-{IDENTIFIER}		{ return symbol(TokenNames.ID, "ID(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]"); }
+{IDENTIFIER}		{ return symbol(TokenNames.ID, yytext()); }
 
 /* Whitespace */
 {WhiteSpace}		{ /* just skip what was found, do nothing */ }

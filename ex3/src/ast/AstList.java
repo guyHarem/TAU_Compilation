@@ -1,5 +1,7 @@
 package ast;
 
+import types.*;
+
 public class AstList<T extends AstNode> extends AstNode {
     public T head;
     public AstList<T> tail;
@@ -10,6 +12,7 @@ public class AstList<T extends AstNode> extends AstNode {
         this.head = head;
         this.tail = tail;
         this.typeName = typeName;
+        this.line = lineNum;
     }
 
     @Override
@@ -19,5 +22,11 @@ public class AstList<T extends AstNode> extends AstNode {
         AstGraphviz.getInstance().logNode(serialNumber, typeName + " list");
         if (head != null) AstGraphviz.getInstance().logEdge(serialNumber, head.serialNumber);
         if (tail != null) AstGraphviz.getInstance().logEdge(serialNumber, tail.serialNumber);
+    }
+
+    public Type semantMe() {
+        if (head != null) head.semantMe();
+        if (tail != null) tail.semantMe();
+        return null;
     }
 }

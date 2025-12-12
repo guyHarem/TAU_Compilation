@@ -1,0 +1,9 @@
+# Build artifacts
+bin/
+SEMANT
+
+# Generated output files
+output/
+
+# Test scripts (local use only)
+*.sh

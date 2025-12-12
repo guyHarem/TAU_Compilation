@@ -6,6 +6,7 @@ public class AstType extends AstNode {
     public AstType(String name, int lineNum) {
         serialNumber = AstNodeSerialNumber.getFresh();
         this.name = name;
+        this.line = lineNum;
     }
 
     @Override

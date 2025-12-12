@@ -9,15 +9,15 @@ public class AstExpInt extends AstExp
 	/******************/
 	/* CONSTRUCTOR(S) */
 	/******************/
-	public AstExpInt(int value)
+	public AstExpInt(int value, int lineNum)
 	{
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
 
-		System.out.format("====================== exp -> INT( %d )\n", value);
 		this.value = value;
+		this.line = lineNum;
 	}
 
 	/************************************************/
@@ -41,5 +41,11 @@ public class AstExpInt extends AstExp
 	public Type semantMe()
 	{
 		return TypeInt.getInstance();
+	}
+
+	@Override
+	public Integer evaluateConstant()
+	{
+		return value;
 	}
 }

@@ -1,11 +1,14 @@
 package ast;
 
+import types.*;
+
 public class AstStmtVarDec extends AstStmt {
     public AstVarDec dec;
 
     public AstStmtVarDec(AstVarDec var, int lineNum) {
         serialNumber = AstNodeSerialNumber.getFresh();
         this.dec = var;
+        this.line = lineNum;
     }
 
     @Override
@@ -13,5 +16,13 @@ public class AstStmtVarDec extends AstStmt {
         if (dec != null) dec.printMe();
         AstGraphviz.getInstance().logNode(serialNumber, "var dec stmt");
         if (dec != null) AstGraphviz.getInstance().logEdge(serialNumber, dec.serialNumber);
+    }
+
+    @Override
+    public Type semantMe() {
+        if (dec != null) {
+            return dec.semantMe();
+        }
+        return null;
     }
 }

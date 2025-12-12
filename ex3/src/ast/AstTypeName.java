@@ -16,7 +16,7 @@ public class AstTypeName extends AstNode
 	/****************/
 	public String type;
 	public String name;
-	
+
 	/******************/
 	/* CONSTRUCTOR(S) */
 	/******************/
@@ -26,7 +26,7 @@ public class AstTypeName extends AstNode
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
-	
+
 		this.type = type;
 		this.name = name;
 	}
@@ -66,11 +66,20 @@ public class AstTypeName extends AstNode
 			/* Enter var with name=name and type=t to symbol table */
 			/*******************************************************/
 			SymbolTable.getInstance().enter(name,t);
+
+			/********************************************************/
+			/* If inside a class, add member to the class's memberMap */
+			/********************************************************/
+			TypeClass currentClass = SymbolTable.getInstance().getCurrentClass();
+			if (currentClass != null)
+			{
+				currentClass.addMember(name, t);
+			}
 		}
 
 		/****************************/
 		/* return (existing) type t */
 		/****************************/
 		return t;
-	}	
+	}
 }

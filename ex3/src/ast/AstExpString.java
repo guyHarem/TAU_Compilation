@@ -9,15 +9,15 @@ public class AstExpString extends AstExp
 	/******************/
 	/* CONSTRUCTOR(S) */
 	/******************/
-	public AstExpString(String value)
+	public AstExpString(String value, int lineNum)
 	{
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
 
-		System.out.format("====================== exp -> STRING( %s )\n", value);
 		this.value = value;
+		this.line = lineNum;
 	}
 
 	/******************************************************/

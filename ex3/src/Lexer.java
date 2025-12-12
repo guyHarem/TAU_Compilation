@@ -869,7 +869,7 @@ class Lexer implements java_cup.runtime.Scanner {
 							if( val < 0 || val > 32767){
 								throw new NumberFormatException("Value exceeds L language limit");
 							}
-							return symbol(TokenNames.INT, "INT(" + val + ")[" + getLine() + "," + getTokenStartPosition() + "]");
+							return symbol(TokenNames.INT, val);
 						} catch (NumberFormatException e) { //Either number it too large for Java, or exeecds L language limit
 							return symbol(TokenNames.ERROR, "ERROR");
 						}
@@ -897,7 +897,7 @@ class Lexer implements java_cup.runtime.Scanner {
           // fall through
           case 55: break;
           case 17:
-            { return symbol(TokenNames.ID, "ID(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]");
+            { return symbol(TokenNames.ID, yytext());
             }
           // fall through
           case 56: break;
@@ -927,7 +927,7 @@ class Lexer implements java_cup.runtime.Scanner {
           // fall through
           case 61: break;
           case 23:
-            { return symbol(TokenNames.STRING, "STRING(" + yytext() + ")[" + getLine() + "," + getTokenStartPosition() + "]");
+            { return symbol(TokenNames.STRING, yytext());
             }
           // fall through
           case 62: break;
