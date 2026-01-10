@@ -1,5 +1,6 @@
 package ast;
 
+import temp.*;
 import types.*;
 
 public class AstStmtList extends AstNode
@@ -62,6 +63,14 @@ public class AstStmtList extends AstNode
 		if (head != null) head.semantMe();
 		if (tail != null) tail.semantMe();
 		
+		return null;
+	}
+
+	public Temp irMe()
+	{
+		if (head != null) head.irMe();
+		if (tail != null) tail.irMe();
+
 		return null;
 	}
 }

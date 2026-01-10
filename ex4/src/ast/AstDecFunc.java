@@ -2,6 +2,8 @@ package ast;
 
 import types.*;
 import symboltable.*;
+import temp.*;
+import ir.*;
 
 public class AstDecFunc extends AstDec
 {
@@ -121,4 +123,13 @@ public class AstDecFunc extends AstDec
 		return null;		
 	}
 	
+	public Temp irMe()
+	{
+		Ir.
+				getInstance().
+				AddIrCommand(new IrCommandLabel("main"));
+		if (body != null) body.irMe();
+
+		return null;
+	}
 }

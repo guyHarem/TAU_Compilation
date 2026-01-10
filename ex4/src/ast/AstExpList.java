@@ -1,5 +1,8 @@
 package ast;
 
+import temp.*;
+import types.*;
+
 public class AstExpList extends AstNode
 {
 	/****************/
@@ -49,5 +52,10 @@ public class AstExpList extends AstNode
 		/****************************************/
 		if (head != null) AstGraphviz.getInstance().logEdge(serialNumber,head.serialNumber);
 		if (tail != null) AstGraphviz.getInstance().logEdge(serialNumber,tail.serialNumber);
+	}
+
+	public Temp irMe()
+	{
+		return head.irMe();
 	}
 }

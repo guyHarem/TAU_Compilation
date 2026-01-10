@@ -1,7 +1,8 @@
 package ast;
 
+import ir.*;
+import temp.*;
 import types.*;
-import symboltable.*;
 
 public class AstStmtAssign extends AstStmt
 {
@@ -110,5 +111,22 @@ public class AstStmtAssign extends AstStmt
 		}
 
 		return false;
+	}
+
+	public Temp irMe()
+	{
+		Temp src = exp.irMe();
+		
+		// For now, we only handle the 'Simple' case because Ex4 only uses int vars.
+		if (var instanceof AstVarSimple) {
+			String name = ((AstVarSimple) var).name;
+			Ir.getInstance().AddIrCommand(new IrCommandStore(name, src));
+		} else {
+			// Placeholder for AstVarField and AstVarSubscript
+			// These will be implemented in the final project.
+			var.irMe(); 
+		}
+
+		return null;
 	}
 }

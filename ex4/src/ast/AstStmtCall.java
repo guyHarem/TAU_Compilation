@@ -1,5 +1,6 @@
 package ast;
 
+import temp.*;
 import types.*;
 
 public class AstStmtCall extends AstStmt
@@ -46,6 +47,13 @@ public class AstStmtCall extends AstStmt
 		if (callExp != null) {
 			callExp.semantMe();
 		}
+		return null;
+	}
+
+	public Temp irMe()
+	{
+		if (callExp != null) callExp.irMe();
+
 		return null;
 	}
 }

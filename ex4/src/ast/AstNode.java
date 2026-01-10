@@ -1,5 +1,6 @@
 package ast;
 
+import temp.*;
 import types.*;
 
 public abstract class AstNode
@@ -28,6 +29,14 @@ public abstract class AstNode
 	/* Default semantic analysis (can be overridden) */
 	/***********************************************/
 	public Type semantMe()
+	{
+		return null;
+	}
+
+	/*****************************************/
+	/* The default IR action for an AST node */
+	/*****************************************/
+	public Temp irMe()
 	{
 		return null;
 	}

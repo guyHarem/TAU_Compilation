@@ -1,5 +1,7 @@
 package ast;
 
+import ir.*;
+import temp.*;
 import types.*;
 
 public class AstExpInt extends AstExp
@@ -47,5 +49,12 @@ public class AstExpInt extends AstExp
 	public Integer evaluateConstant()
 	{
 		return value;
+	}
+
+	public Temp irMe()
+	{
+		Temp t = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IRcommandConstInt(t,value));
+		return t;
 	}
 }

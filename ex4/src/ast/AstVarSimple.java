@@ -1,7 +1,9 @@
 package ast;
 
-import types.*;
+import ir.*;
 import symboltable.*;
+import temp.*;
+import types.*;
 
 public class AstVarSimple extends AstVar {
     public String name;
@@ -45,5 +47,14 @@ public class AstVarSimple extends AstVar {
         }
 
         throw new SemanticError(line, "undefined variable: " + name);
+    }
+    
+    public Temp irMe()
+    {
+        Temp t = TempFactory.getInstance().getFreshTemp();
+        // The static analyzer needs to know WHICH 'x' this is.
+        // If your symbol table tracks offsets, pass that here.
+        Ir.getInstance().AddIrCommand(new IrCommandLoad(t, name));
+        return t;
     }
 }
