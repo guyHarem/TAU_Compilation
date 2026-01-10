@@ -13,7 +13,7 @@ package ir;
 
 public class IrCommandAllocate extends IrCommand
 {
-	String varName;
+	public String varName;
 	
 	public IrCommandAllocate(String varName)
 	{

@@ -1,7 +1,9 @@
 package ast;
 
-import types.*;
+import ir.*;
 import symboltable.*;
+import temp.*;
+import types.*;
 
 public class AstFuncDec extends AstDec {
     public AstType type;
@@ -116,4 +118,13 @@ public class AstFuncDec extends AstDec {
 
         return funcType;
     }
+	
+	@Override
+	public Temp irMe()
+	{
+		System.out.println("[DEBUG] AstDecFunc irMe: " + name);
+		Ir.getInstance().AddIrCommand(new IrCommandLabel(name));
+		if (body != null) body.irMe();
+		return null;
+	}
 }

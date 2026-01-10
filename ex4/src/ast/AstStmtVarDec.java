@@ -1,5 +1,6 @@
 package ast;
 
+import temp.*;
 import types.*;
 
 public class AstStmtVarDec extends AstStmt {
@@ -25,4 +26,11 @@ public class AstStmtVarDec extends AstStmt {
         }
         return null;
     }
+
+    @Override
+	public Temp irMe()
+	{
+		if (dec != null) return dec.irMe();
+		return null;
+	}
 }

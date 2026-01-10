@@ -14,8 +14,8 @@ import temp.*;
 
 public class IrCommandStore extends IrCommand
 {
-	String varName;
-	Temp src;
+	public String varName;
+	public Temp src;
 	
 	public IrCommandStore(String varName, Temp src)
 	{

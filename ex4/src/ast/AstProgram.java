@@ -1,5 +1,7 @@
 package ast;
 
+import ir.*;
+import temp.*;
 import types.*;
 
 public class AstProgram extends AstNode {
@@ -27,6 +29,14 @@ public class AstProgram extends AstNode {
                 }
             }
         }
+        return null;
+    }
+
+    @Override
+    public Temp irMe() {
+		System.out.println("[DEBUG] AstProgram irMe: " + decList);
+        if (decList != null) decList.irMe(); 
+        Ir.getInstance().AddIrCommand(new IrCommandJumpLabel("main"));
         return null;
     }
 }

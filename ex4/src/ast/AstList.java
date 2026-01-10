@@ -1,5 +1,6 @@
 package ast;
 
+import temp.*;
 import types.*;
 
 public class AstList<T extends AstNode> extends AstNode {
@@ -29,4 +30,12 @@ public class AstList<T extends AstNode> extends AstNode {
         if (tail != null) tail.semantMe();
         return null;
     }
+	
+	public Temp irMe()
+	{
+		System.out.println("[DEBUG] AstList irMe");
+		if (head != null) head.irMe();
+		if (tail != null) tail.irMe();
+		return null;
+	}
 }

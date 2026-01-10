@@ -1,5 +1,6 @@
 package ast;
 
+import temp.*;
 import types.*;
 
 public class AstExpVar extends AstExp
@@ -33,6 +34,14 @@ public class AstExpVar extends AstExp
 	public Type semantMe()
 	{
 		if (var != null) return var.semantMe();
+		return null;
+	}
+
+	@Override
+	public Temp irMe() {
+		if (var != null) {
+			return var.irMe();
+		}
 		return null;
 	}
 }

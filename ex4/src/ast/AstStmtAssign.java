@@ -115,6 +115,7 @@ public class AstStmtAssign extends AstStmt
 
 	public Temp irMe()
 	{
+		System.out.println("[DEBUG] AstStmtAssign irMe");
 		Temp src = exp.irMe();
 		
 		// For now, we only handle the 'Simple' case because Ex4 only uses int vars.

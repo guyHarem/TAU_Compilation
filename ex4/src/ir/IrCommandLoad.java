@@ -14,8 +14,8 @@ import temp.*;
 
 public class IrCommandLoad extends IrCommand
 {
-	Temp dst;
-	String varName;
+	public Temp dst;
+	public String varName;
 	
 	public IrCommandLoad(Temp dst, String varName)
 	{

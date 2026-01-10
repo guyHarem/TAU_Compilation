@@ -64,4 +64,16 @@ public class Ir
 		}
 		return instance;
 	}
+
+	/**
+     * Standard getter to allow the CFGBuilder to access the 
+     * start of the IR list without reflection.
+     */
+    public IrCommand getHead() {
+        return head;
+    }
+
+    public IrCommandList getTailList() {
+        return tail;
+    }
 }

@@ -1,9 +1,9 @@
 package ast;
 
-import types.*;
+import ir.*;
 import symboltable.*;
 import temp.*;
-import ir.*;
+import types.*;
 
 public class AstDecVar extends AstDec
 {
@@ -95,7 +95,6 @@ public class AstDecVar extends AstDec
 	public Temp irMe()
 	{
 		Ir.getInstance().AddIrCommand(new IrCommandAllocate(name));
-
 		if (initialValue != null)
 		{
 			Ir.getInstance().AddIrCommand(new IrCommandStore(name,initialValue.irMe()));
