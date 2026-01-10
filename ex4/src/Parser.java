@@ -6,7 +6,6 @@
 import java_cup.runtime.*;
 import ast.*;
 import java.util.*;
-import java.io.PrintWriter;
 import java_cup.runtime.XMLElement;
 
 /** CUP v0.11b 20160615 (GIT 4ac7450) generated parser.
@@ -336,22 +335,15 @@ public class Parser extends java_cup.runtime.lr_parser {
 
     Symbol s = null;
     try {
-        // Attempt to get the next token from the lexer
         s = lexer.next_token();
     } catch (RuntimeException e) {
-        // CATCH BLOCK: Catches the specific exception thrown by the lexer for fatal errors
         if (e.getMessage() != null && e.getMessage().equals("LEX_ERROR")) {
-            if (fileWriter != null) {
-                fileWriter.print("ERROR"); // Print "ERROR" for lexical error
-            }
-            fileWriter.close();
-            System.exit(0); // Immediately halt execution
+            System.out.println("ERROR");
+            System.exit(0);
         }
-        // Re-throw any other runtime exception
         throw e;
     }
    
-    // If successful, record the line and return the symbol
     this.lastTokenLine = lexer.getLine();
     return s;
 
@@ -359,26 +351,20 @@ public class Parser extends java_cup.runtime.lr_parser {
 
 
     public Lexer lexer;
-    public int lastTokenLine;      // Restored this missing variable
-    public PrintWriter fileWriter; // Kept this for the output file
-    public Parser(Lexer lexer, PrintWriter fileWriter)
+    public int lastTokenLine;
+
+    // Fixed constructor: only takes the lexer
+    public Parser(Lexer lexer)
     {
         super(lexer);
         this.lexer = lexer;
-        this.fileWriter = fileWriter;
-        this.lastTokenLine = 0;    // Restored initialization
+        this.lastTokenLine = 0;
     }
    
     public void report_error(String message, Object info)
     {
-        /*
-        * This method is now exclusively for true Syntax Errors (unexpected valid token).
-        * Lexical errors are handled immediately in the 'scan with' block.
-        */
-        if (fileWriter != null) {
-            fileWriter.print("ERROR(" + lexer.getLine() + ")");
-        }
-        fileWriter.close();
+        // Standard error reporting to console or specialized exception
+        System.out.println("ERROR(" + lexer.getLine() + ")");
         System.exit(0);
     }
 
@@ -770,16 +756,13 @@ class CUP$Parser$actions {
           case 26: // classDec ::= CLASS ID LBRACE cFieldList RBRACE 
             {
               AstClassDec RESULT =null;
-		int cleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)).left;
-		int cright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)).right;
-		Object c = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-4)).value;
 		int nameleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).left;
 		int nameright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).right;
 		String name = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-3)).value;
 		int fieldsleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).left;
 		int fieldsright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
 		AstList<AstDec> fields = (AstList<AstDec>)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
-		 RESULT = new AstClassDec(name, null, fields, cleft + 1); 
+		 RESULT = new AstClassDec(name, null, fields, parser.lastTokenLine); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("classDec",5, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -788,9 +771,6 @@ class CUP$Parser$actions {
           case 27: // classDec ::= CLASS ID EXTENDS ID LBRACE cFieldList RBRACE 
             {
               AstClassDec RESULT =null;
-		int cleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-6)).left;
-		int cright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-6)).right;
-		Object c = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-6)).value;
 		int nameleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-5)).left;
 		int nameright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-5)).right;
 		String name = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-5)).value;
@@ -800,7 +780,7 @@ class CUP$Parser$actions {
 		int fieldsleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).left;
 		int fieldsright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
 		AstList<AstDec> fields = (AstList<AstDec>)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
-		 RESULT = new AstClassDec(name, parent, fields, cleft + 1); 
+		 RESULT = new AstClassDec(name, parent, fields, parser.lastTokenLine); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("classDec",5, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-6)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
