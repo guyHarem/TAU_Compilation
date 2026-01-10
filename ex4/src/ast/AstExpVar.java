@@ -1,23 +1,38 @@
 package ast;
 
-import symboltable.*;
 import types.*;
 
 public class AstExpVar extends AstExp
 {
-    public String name;
+	public AstVar var;
 
-    public AstExpVar(String name, int lineNum)
-    {
-        this.serialNumber = AstNodeSerialNumber.getFresh();
-        this.name = name;
-        this.line = lineNum;
-    }
+	/******************/
+	/* CONSTRUCTOR(S) */
+	/******************/
+	public AstExpVar(AstVar var, int lineNum)
+	{
+		/******************************/
+		/* SET A UNIQUE SERIAL NUMBER */
+		/******************************/
+		serialNumber = AstNodeSerialNumber.getFresh();
 
-    public Type semantMe()
-    {
-        // Use your symbol table from Ex3 to find the type and 
-        // importantly, the scope/offset of this variable[cite: 286, 287].
-        return SymbolTable.getInstance().find(name);
-    }
+		this.var = var;
+		this.line = lineNum;
+	}
+
+	/************************************************/
+	/* The printing message for a var exp AST node */
+	/************************************************/
+	public void printMe()
+	{
+		if (var != null) var.printMe();
+		AstGraphviz.getInstance().logNode(serialNumber, "var exp");
+		if (var != null) AstGraphviz.getInstance().logEdge(serialNumber, var.serialNumber);
+	}
+
+	public Type semantMe()
+	{
+		if (var != null) return var.semantMe();
+		return null;
+	}
 }
