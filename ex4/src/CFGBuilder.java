@@ -32,9 +32,8 @@ public class CFGBuilder {
         }
 		System.out.println("[DEBUG] NodeList length: " + nodeList.size());
 
-        // Phase 2: Connect the edges based on Command types
+        // Phase 2: Connect the edges and set predecessors
         for (int i = 0; i < nodeList.size(); i++) {
-		    System.out.println("[DEBUG] CFGBuilder " + i + ": " + nodeList.get(i));
             CFGNode node = nodeList.get(i);
             IrCommand cmd = node.command;
 
@@ -43,24 +42,28 @@ public class CFGBuilder {
                 CFGNode targetNode = labelMap.get(target);
                 if (targetNode != null) {
                     node.successors.add(targetNode);
+                    targetNode.predecessors.add(node); // Set predecessor link
                 }
-                // Unconditional jumps DO NOT fall through to i + 1
             } 
             else if (cmd instanceof IrCommandJumpIfEqToZero) {
                 String target = ((IrCommandJumpIfEqToZero) cmd).labelName;
                 CFGNode targetNode = labelMap.get(target);
                 if (targetNode != null) {
                     node.successors.add(targetNode);
+                    targetNode.predecessors.add(node); // Set predecessor link
                 }
-                // Conditional jumps DO fall through to the next instruction
                 if (i + 1 < nodeList.size()) {
-                    node.successors.add(nodeList.get(i + 1));
+                    CFGNode nextNode = nodeList.get(i + 1);
+                    node.successors.add(nextNode);
+                    nextNode.predecessors.add(node); // Set predecessor link
                 }
             } 
             else {
-                // Sequential flow for all other commands (Store, Load, Binop, etc.)
+                // Sequential flow
                 if (i + 1 < nodeList.size()) {
-                    node.successors.add(nodeList.get(i + 1));
+                    CFGNode nextNode = nodeList.get(i + 1);
+                    node.successors.add(nextNode);
+                    nextNode.predecessors.add(node); // Set predecessor link
                 }
             }
         }
@@ -74,8 +77,9 @@ public class CFGBuilder {
                 String cleanLabel = node.getLabel().replace("\"", "\\\"");
                 writer.format("    %s (%d);\n", cleanLabel, node.id);
 
+                if (node.successors.isEmpty()) writer.format("        %d -> NULL;\n", node.id);
                 for (CFGNode successor : node.successors) {
-                    if (successor != null) {
+                    if (successor != null && (successor.id != node.id + 1)) {
                         writer.format("        %d -> %d;\n", node.id, successor.id);
                     }
                 }

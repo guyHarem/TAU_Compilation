@@ -12,14 +12,16 @@ package ir;
 /*******************/
 import temp.*;
 
-public class IrCommandConstInt extends IrCommand
+public class IrCommandBinop extends IrCommand
 {
+	public Temp t1;
+	public Temp t2;
 	public Temp dst;
-	public int value;
 	
-	public IrCommandConstInt(Temp dst, int value)
+	public IrCommandBinop(Temp dst, Temp t1, Temp t2)
 	{
 		this.dst = dst;
-		this.value = value;
+		this.t1 = t1;
+		this.t2 = t2;
 	}
 }

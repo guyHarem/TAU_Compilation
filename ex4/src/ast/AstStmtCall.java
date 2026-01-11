@@ -52,8 +52,7 @@ public class AstStmtCall extends AstStmt
 
 	public Temp irMe()
 	{
-		if (callExp != null) callExp.irMe();
-
+		if (callExp != null) return callExp.irMe();
 		return null;
 	}
 }

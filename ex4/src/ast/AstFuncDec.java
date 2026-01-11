@@ -125,6 +125,7 @@ public class AstFuncDec extends AstDec {
 		System.out.println("[DEBUG] AstDecFunc irMe: " + name);
 		Ir.getInstance().AddIrCommand(new IrCommandLabel(name));
 		if (body != null) body.irMe();
+		Ir.getInstance().AddIrCommand(new IrCommandReturn());
 		return null;
 	}
 }

@@ -1,7 +1,9 @@
 package ast;
 
-import types.*;
+import ir.*;
 import symboltable.*;
+import temp.*;
+import types.*;
 
 public class AstStmtIf extends AstStmt
 {
@@ -82,5 +84,16 @@ public class AstStmtIf extends AstStmt
 		/* [4] Return value is irrelevant for if statement */
 		/**************************************************/
 		return null;
-	}	
+	}
+
+	@Override
+	public Temp irMe()
+	{
+		String labelEnd = IrCommand.getFreshLabel("end");
+		Temp condTemp = cond.irMe();
+		Ir.getInstance().AddIrCommand(new IrCommandJumpIfEqToZero(condTemp, labelEnd));
+		body.irMe();
+		Ir.getInstance().AddIrCommand(new IrCommandLabel(labelEnd));
+		return null;
+	}
 }

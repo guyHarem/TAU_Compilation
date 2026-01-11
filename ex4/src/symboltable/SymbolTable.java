@@ -6,12 +6,8 @@ package symboltable;
 /*******************/
 /* GENERAL IMPORTS */
 /*******************/
-import java.io.PrintWriter;
 import java.io.File;
-
-/*******************/
-/* PROJECT IMPORTS */
-/*******************/
+import java.io.PrintWriter;
 import types.*;
 
 /****************/
@@ -25,6 +21,7 @@ public class SymbolTable
 	/* The actual symbol table data structure ... */
 	/**********************************************/
 	private SymbolTableEntry[] table = new SymbolTableEntry[hashArraySize];
+	private int currentScopeLevel = 0;
 	private SymbolTableEntry top;
 	private int topIndex = 0;
 	
@@ -47,39 +44,17 @@ public class SymbolTable
 	/****************************************************************************/
 	/* Enter a variable, function, class type or array type to the symbol table */
 	/****************************************************************************/
-	public void enter(String name, Type t)
-	{
-		/*************************************************/
-		/* [1] Compute the hash value for this new entry */
-		/*************************************************/
-		int hashValue = hash(name);
-
-		/******************************************************************************/
-		/* [2] Extract what will eventually be the next entry in the hashed position  */
-		/*     NOTE: this entry can very well be null, but the behaviour is identical */
-		/******************************************************************************/
-		SymbolTableEntry next = table[hashValue];
-	
-		/**************************************************************************/
-		/* [3] Prepare a new symbol table entry with name, type, next and prevtop */
-		/**************************************************************************/
-		SymbolTableEntry e = new SymbolTableEntry(name,t,hashValue,next,top, topIndex++);
-
-		/**********************************************/
-		/* [4] Update the top of the symbol table ... */
-		/**********************************************/
-		top = e;
-		
-		/****************************************/
-		/* [5] Enter the new entry to the table */
-		/****************************************/
-		table[hashValue] = e;
-		
-		/**************************/
-		/* [6] Print Symbol Table */
-		/**************************/
-		printMe();
-	}
+	public void enter(String name, Type t) {
+        int hashValue = hash(name);
+        SymbolTableEntry next = table[hashValue];
+        
+        // Include currentScopeLevel in the constructor
+        SymbolTableEntry e = new SymbolTableEntry(name, t, hashValue, next, top, topIndex++, currentScopeLevel);
+        
+        top = e;
+        table[hashValue] = e;
+        printMe();
+    }
 
 	/***********************************************/
 	/* Find the inner-most scope element with name */
@@ -168,23 +143,10 @@ public class SymbolTable
 	/***************************************************************************/
 	/* begine scope = Enter the <SCOPE-BOUNDARY> element to the data structure */
 	/***************************************************************************/
-	public void beginScope()
-	{
-		/************************************************************************/
-		/* Though <SCOPE-BOUNDARY> entries are present inside the symbol table, */
-		/* they are not really types. In order to be able to debug print them,  */
-		/* a special TYPE_FOR_SCOPE_BOUNDARIES was developed for them. This     */
-		/* class only contain their type name which is the bottom sign: _|_     */
-		/************************************************************************/
-		enter(
-			"SCOPE-BOUNDARY",
-			new TypeForScopeBoundaries("NONE"));
-
-		/*********************************************/
-		/* Print the symbol table after every change */
-		/*********************************************/
-		printMe();
-	}
+	public void beginScope() {
+        currentScopeLevel++;
+        enter("SCOPE-BOUNDARY", new TypeForScopeBoundaries("NONE"));
+    }
 
 	/********************************************************************************/
 	/* end scope = Keep popping elements out of the data structure,                 */
@@ -209,6 +171,7 @@ public class SymbolTable
 			topIndex = topIndex -1;
 			top = top.prevtop;
 		}
+		currentScopeLevel--;
 
 		/*********************************************/
 		/* Print the symbol table after every change */
@@ -374,4 +337,11 @@ public class SymbolTable
 		}
 		return instance;
 	}
+
+	public SymbolTableEntry findEntry(String name) {
+        for (SymbolTableEntry e = table[hash(name)]; e != null; e = e.next) {
+            if (name.equals(e.name)) return e;
+        }
+        return null;
+    }
 }

@@ -12,14 +12,7 @@ package ir;
 /*******************/
 import temp.*;
 
-public class IrCommandConstInt extends IrCommand
+public class IrCommandBinopSubIntegers extends IrCommandBinop
 {
-	public Temp dst;
-	public int value;
-	
-	public IrCommandConstInt(Temp dst, int value)
-	{
-		this.dst = dst;
-		this.value = value;
-	}
+	public IrCommandBinopSubIntegers(Temp dst, Temp t1, Temp t2) { super(dst, t1, t2); }
 }

@@ -38,6 +38,8 @@ public abstract class AstNode
 	/*****************************************/
 	public Temp irMe()
 	{
-		return null;
+		throw new UnsupportedOperationException(
+			"irMe not implemented for " + this.getClass().getSimpleName()
+		);
 	}
 }

@@ -12,12 +12,12 @@ package ir;
 /*******************/
 import temp.*;
 
-public class IRcommandConstInt extends IrCommand
+public class IrCommandConstInt extends IrCommand
 {
 	Temp t;
 	int value;
 	
-	public IRcommandConstInt(Temp t, int value)
+	public IrCommandConstInt(Temp t, int value)
 	{
 		this.t = t;
 		this.value = value;

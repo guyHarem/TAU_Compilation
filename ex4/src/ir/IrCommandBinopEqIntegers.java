@@ -12,16 +12,7 @@ package ir;
 /*******************/
 import temp.*;
 
-public class IrCommandBinopEqIntegers extends IrCommand
+public class IrCommandBinopEqIntegers extends IrCommandBinop
 {
-	public Temp t1;
-	public Temp t2;
-	public Temp dst;
-
-	public IrCommandBinopEqIntegers(Temp dst, Temp t1, Temp t2)
-	{
-		this.dst = dst;
-		this.t1 = t1;
-		this.t2 = t2;
-	}
+	public IrCommandBinopEqIntegers(Temp dst, Temp t1, Temp t2) { super(dst, t1, t2); }
 }

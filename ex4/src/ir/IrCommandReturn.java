@@ -10,9 +10,9 @@ package ir;
 /*******************/
 /* PROJECT IMPORTS */
 /*******************/
-import temp.*;
 
-public class IrCommandBinopAddIntegers extends IrCommandBinop
+// TODO: Actually add return value in excercise 5.
+public class IrCommandReturn extends IrCommand
 {
-	public IrCommandBinopAddIntegers(Temp dst, Temp t1, Temp t2) { super(dst, t1, t2); }
+	public IrCommandReturn() { }
 }

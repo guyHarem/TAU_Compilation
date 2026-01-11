@@ -1,21 +1,4 @@
 digraph
 {
 graph [ordering = "out"]
-v0 [label = "type (void)"];
-v1 [label = "type (int)"];
-v2 [label = "INT(1)"];
-v3 [label = "def var (x)"];
-v3 -> v1;
-v3 -> v2;
-v4 [label = "var dec stmt"];
-v4 -> v3;
-v5 [label = "stmt list"];
-v5 -> v4;
-v6 [label = "def func (main)"];
-v6 -> v0;
-v6 -> v5;
-v7 [label = "dec list"];
-v7 -> v6;
-v8 [label = "Program"];
-v8 -> v7;
 }

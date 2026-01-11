@@ -7,54 +7,56 @@ import types.*;
 
 public class AstVarSimple extends AstVar {
     public String name;
+    public String unique_name;
 
     public AstVarSimple(String name, int lineNum) {
         serialNumber = AstNodeSerialNumber.getFresh();
-        this.name = name;
         this.line = lineNum;
+        this.name = name;
     }
 
-	@Override
+    @Override
     public void printMe() {
         AstGraphviz.getInstance().logNode(serialNumber, String.format("var (%s)", name));
     }
 
     @Override
     public Type semantMe() {
-        // Get current class context (if inside a class method)
+        // We must find the correct type AND the unique scope level.
+        // We store the found type in a variable so we can "bake" the 
+        // unique_name before returning, regardless of which scope matched.
+        Type foundType = null;
+
+        // 1. Get current class context (if inside a class method)
         TypeClass currentClass = SymbolTable.getInstance().getCurrentClass();
 
-        // First check all local scopes (excluding global)
-        // This covers: block scopes, method scope, class scope (own members)
-        Type localT = SymbolTable.getInstance().findExcludingGlobal(name);
-        if (localT != null) {
-            return localT;
+        // 2. Check all local scopes (excluding global)
+        foundType = SymbolTable.getInstance().findExcludingGlobal(name);
+
+        // 3. If not found, check class members (if applicable)
+        if (foundType == null && currentClass != null) {
+            foundType = currentClass.findMember(name);
         }
 
-        // If inside a class, check class members (including inherited) before global
-        // This implements spec 2.7: class scope -> superclass chain -> global
-        if (currentClass != null) {
-            Type memberType = currentClass.findMember(name);
-            if (memberType != null) {
-                return memberType;
-            }
+        // 4. Finally, check global scope
+        if (foundType == null) {
+            foundType = SymbolTable.getInstance().find(name);
         }
 
-        // Finally check global scope
-        Type t = SymbolTable.getInstance().find(name);
-        if (t != null) {
-            return t;
+        // 5. Validation
+        if (foundType == null) {
+            throw new SemanticError(line, "undefined variable: " + name);
         }
 
-        throw new SemanticError(line, "undefined variable: " + name);
+        SymbolTableEntry entry = SymbolTable.getInstance().findEntry(name);
+        this.unique_name = name + "@" + entry.scopeLevel;
+        return foundType;
     }
-    
-    public Temp irMe()
-    {
+
+    @Override
+    public Temp irMe() {
         Temp t = TempFactory.getInstance().getFreshTemp();
-        // The static analyzer needs to know WHICH 'x' this is.
-        // If your symbol table tracks offsets, pass that here.
-        Ir.getInstance().AddIrCommand(new IrCommandLoad(t, name));
+        Ir.getInstance().AddIrCommand(new IrCommandLoad(t, unique_name));
         return t;
     }
 }

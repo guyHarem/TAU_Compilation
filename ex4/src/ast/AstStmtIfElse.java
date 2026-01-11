@@ -1,7 +1,9 @@
 package ast;
 
-import types.*;
+import ir.*;
 import symboltable.*;
+import temp.*;
+import types.*;
 
 public class AstStmtIfElse extends AstStmt {
     public AstExp cond;
@@ -73,4 +75,19 @@ public class AstStmtIfElse extends AstStmt {
 
         return null;
     }
+
+	@Override
+	public Temp irMe()
+	{
+		String labelElse = IrCommand.getFreshLabel("else");
+		String labelEnd = IrCommand.getFreshLabel("end");
+		Temp condTemp = cond.irMe();
+		Ir.getInstance().AddIrCommand(new IrCommandJumpIfEqToZero(condTemp, labelElse));
+		body.irMe();
+		Ir.getInstance().AddIrCommand(new IrCommandJumpLabel(labelEnd));
+		Ir.getInstance().AddIrCommand(new IrCommandLabel(labelElse));
+		elseBody.irMe();
+		Ir.getInstance().AddIrCommand(new IrCommandLabel(labelEnd));
+		return null;
+	}
 }

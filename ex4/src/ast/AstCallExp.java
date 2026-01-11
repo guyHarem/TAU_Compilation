@@ -1,7 +1,9 @@
 package ast;
 
-import types.*;
+import ir.*;
 import symboltable.*;
+import temp.*;
+import types.*;
 
 public class AstCallExp extends AstExp {
     public AstVar var;
@@ -133,4 +135,13 @@ public class AstCallExp extends AstExp {
 
         return false;
     }
+
+    @Override
+	public Temp irMe()
+	{
+		Temp t = null;
+		if (args != null && args.head != null) { t = args.head.irMe(); }
+		Ir.getInstance().AddIrCommand(new IrCommandPrintInt(t));
+		return null;
+	}
 }

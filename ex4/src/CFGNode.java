@@ -7,6 +7,7 @@ public class CFGNode {
     
     public int id; // The field your error is complaining about
     public IrCommand command;
+    public List<CFGNode> predecessors = new ArrayList<>();
     public List<CFGNode> successors = new ArrayList<>();
 
     public CFGNode(IrCommand command) {
