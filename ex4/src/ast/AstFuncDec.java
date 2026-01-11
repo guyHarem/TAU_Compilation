@@ -123,9 +123,12 @@ public class AstFuncDec extends AstDec {
 	public Temp irMe()
 	{
 		System.out.println("[DEBUG] AstDecFunc irMe: " + name);
+        
+		String labelEnd = IrCommand.getFreshLabel("end");
+		Ir.getInstance().AddIrCommand(new IrCommandJumpLabel(labelEnd));
 		Ir.getInstance().AddIrCommand(new IrCommandLabel(name));
 		if (body != null) body.irMe();
-		Ir.getInstance().AddIrCommand(new IrCommandReturn());
+		Ir.getInstance().AddIrCommand(new IrCommandLabel(labelEnd));
 		return null;
 	}
 }

@@ -36,6 +36,7 @@ public class CFGBuilder {
         for (int i = 0; i < nodeList.size(); i++) {
             CFGNode node = nodeList.get(i);
             IrCommand cmd = node.command;
+            boolean canMoveToNext = true;
 
             if (cmd instanceof IrCommandJumpLabel) {
                 String target = ((IrCommandJumpLabel) cmd).labelName;
@@ -44,6 +45,7 @@ public class CFGBuilder {
                     node.successors.add(targetNode);
                     targetNode.predecessors.add(node); // Set predecessor link
                 }
+                canMoveToNext = false;
             } 
             else if (cmd instanceof IrCommandJumpIfEqToZero) {
                 String target = ((IrCommandJumpIfEqToZero) cmd).labelName;
@@ -52,14 +54,12 @@ public class CFGBuilder {
                     node.successors.add(targetNode);
                     targetNode.predecessors.add(node); // Set predecessor link
                 }
-                if (i + 1 < nodeList.size()) {
-                    CFGNode nextNode = nodeList.get(i + 1);
-                    node.successors.add(nextNode);
-                    nextNode.predecessors.add(node); // Set predecessor link
-                }
-            } 
-            else {
-                // Sequential flow
+            } else if (cmd instanceof IrCommandReturn) {
+                // We have no successors. TODO: In the future - add return to after the call.
+                canMoveToNext = false;
+            }
+
+            if (canMoveToNext) {
                 if (i + 1 < nodeList.size()) {
                     CFGNode nextNode = nodeList.get(i + 1);
                     node.successors.add(nextNode);
