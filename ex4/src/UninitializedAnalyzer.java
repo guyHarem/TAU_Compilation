@@ -63,8 +63,15 @@ public class UninitializedAnalyzer {
         }
 
         // 4. Output results
-        if (errors.isEmpty()) writer.println("OK");
-        else for (String var : errors) writer.println(var);
+        if (errors.isEmpty()) writer.print("!OK");
+        else {
+            int i = 0;
+            for (String var : errors) {
+                if (i > 0) writer.println();
+                writer.print(var);
+                i++;
+            }
+        }
     }
 
     private Set<String> transfer(CFGNode node, Set<String> currentIn) {
