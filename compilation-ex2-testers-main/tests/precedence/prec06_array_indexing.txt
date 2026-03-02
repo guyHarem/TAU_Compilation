@@ -1,5 +1,0 @@
-void func() {
-    array IntArray = int[];
-    IntArray arr := new int[10];
-    int val := arr[0][1];
-}

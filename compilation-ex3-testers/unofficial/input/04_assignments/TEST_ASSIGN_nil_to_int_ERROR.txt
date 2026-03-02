@@ -1,6 +1,0 @@
-// Test ASSIGN-010 - Cannot assign nil to int (Table 7)
-void main()
-{
-    string s := nil;
-    PrintString(s);
-}

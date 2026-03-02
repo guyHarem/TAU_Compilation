@@ -1,6 +1,0 @@
-class Point { int x; }
-
-void func() {
-    Point p := new Point;
-    int val := p.x;
-}

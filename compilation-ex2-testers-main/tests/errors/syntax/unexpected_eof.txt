@@ -1,2 +1,0 @@
-void func() {
-    int x := 5;

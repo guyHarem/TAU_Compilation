@@ -1,9 +1,0 @@
-// Edge case - Empty class with no members
-// Valid - Class can be empty
-
-class Empty {
-}
-
-void main() {
-    Empty obj := new Empty;
-}

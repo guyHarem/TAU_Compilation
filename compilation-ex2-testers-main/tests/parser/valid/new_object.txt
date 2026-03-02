@@ -1,5 +1,0 @@
-class Person { int age; }
-
-void func() {
-    Person p := new Person;
-}

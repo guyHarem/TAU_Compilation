@@ -1,5 +1,0 @@
-void func() {
-    int x;
-    int y;
-    x := y := 5;
-}

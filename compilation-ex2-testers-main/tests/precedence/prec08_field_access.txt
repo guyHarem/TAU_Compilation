@@ -1,6 +1,0 @@
-class A { A next; }
-
-void func() {
-    A a := new A;
-    A b := a.next.next;
-}

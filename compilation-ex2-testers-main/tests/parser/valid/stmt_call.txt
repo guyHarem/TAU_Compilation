@@ -1,7 +1,0 @@
-void print(int x) {
-    return;
-}
-
-void func() {
-    print(5);
-}

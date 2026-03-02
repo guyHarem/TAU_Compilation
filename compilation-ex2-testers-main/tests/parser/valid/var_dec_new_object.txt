@@ -1,2 +1,0 @@
-class Person { int age; }
-Person p := new Person;

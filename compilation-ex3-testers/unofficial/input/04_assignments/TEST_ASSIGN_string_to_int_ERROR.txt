@@ -1,9 +1,0 @@
-// Tests ASSIGN-002 - Cannot assign string to int
-// Type mismatch in assignment
-
-void main() {
-    int x;
-    string s;
-    s := "hello";
-    x := s;
-}

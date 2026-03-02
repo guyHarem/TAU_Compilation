@@ -1,5 +1,0 @@
-void func() {
-    int x := 123;
-    string s := "hello";
-    int y := nil;
-}

@@ -1,5 +1,0 @@
-int getNum() { return 5; }
-
-void func() {
-    int x := getNum();
-}

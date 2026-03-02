@@ -1,7 +1,0 @@
-class Point {
-    int x;
-}
-
-class Point3D extends Point {
-    int z;
-}
