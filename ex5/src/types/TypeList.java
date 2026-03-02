@@ -1,6 +1,6 @@
 package types;
 
-public class TypeList
+public class TypeList extends Type
 {
 	/****************/
 	/* DATA MEMBERS */
@@ -15,5 +15,13 @@ public class TypeList
 	{
 		this.head = head;
 		this.tail = tail;
+	}
+
+	public int size() {
+		int count = 0;
+		for (TypeList it = this; it != null; it = it.tail) {
+			count++;
+		}
+		return count;
 	}
 }

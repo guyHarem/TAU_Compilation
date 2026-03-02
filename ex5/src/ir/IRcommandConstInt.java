@@ -10,8 +10,8 @@ package ir;
 /*******************/
 /* PROJECT IMPORTS */
 /*******************/
-import temp.*;
 import mips.*;
+import temp.*;
 
 public class IrCommandConstInt extends IrCommand
 {
@@ -26,6 +26,6 @@ public class IrCommandConstInt extends IrCommand
 	
 	public void mipsMe()
 	{
-		MipsGenerator.getInstance().li(t,value);
+		MipsGenerator.getInstance().li(dst, value);
 	}
 }

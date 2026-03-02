@@ -162,6 +162,16 @@ public class MipsGenerator
 				
 		fileWriter.format("\tbeq Temp_%d,$zero,%s\n",i1,label);				
 	}
+
+	// I think this needs to be here. I'm not completely sure - maybe it should be a library function?
+	public void malloc(Temp dst, int size) {
+		// Implement heap allocation for classes using syscall 9
+	}
+
+	public void allocateArray(Temp dst, Temp size) {
+		// Implement array allocation (including length prefix)
+		// Should also generate code for the "size > 0" runtime check
+	}
 	
 	/**************************************/
 	/* USUAL SINGLETON IMPLEMENTATION ... */
