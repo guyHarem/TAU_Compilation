@@ -11,12 +11,8 @@ package ir;
 /* PROJECT IMPORTS */
 /*******************/
 
-public class IrCommandAllocate extends IrCommand
+// TODO: Actually add return value in excercise 5.
+public class IrCommandReturn extends IrCommand
 {
-	public String varName;
-	
-	public IrCommandAllocate(String varName)
-	{
-		this.varName = varName;
-	}
+	public IrCommandReturn() { }
 }

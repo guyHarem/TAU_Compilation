@@ -11,15 +11,24 @@ package ir;
 /* PROJECT IMPORTS */
 /*******************/
 import temp.*;
+import mips.*;
 
 public class IrCommandStore extends IrCommand
 {
-	public String varName;
-	public Temp src;
+	String varName;
+	Temp src;
 	
 	public IrCommandStore(String varName, Temp src)
 	{
 		this.src      = src;
 		this.varName = varName;
+	}
+	
+	/***************/
+	/* MIPS me !!! */
+	/***************/
+	public void mipsMe()
+	{
+		MipsGenerator.getInstance().store(varName,src);
 	}
 }

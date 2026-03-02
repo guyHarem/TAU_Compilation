@@ -39,6 +39,15 @@ public class Ir
 			it.tail = new IrCommandList(cmd,null);
 		}
 	}
+	
+	/***************/
+	/* MIPS me !!! */
+	/***************/
+	public void mipsMe()
+	{
+		if (head != null) head.mipsMe();
+		if (tail != null) tail.mipsMe();
+	}
 
 	/**************************************/
 	/* USUAL SINGLETON IMPLEMENTATION ... */
@@ -64,16 +73,4 @@ public class Ir
 		}
 		return instance;
 	}
-
-	/**
-     * Standard getter to allow the CFGBuilder to access the 
-     * start of the IR list without reflection.
-     */
-    public IrCommand getHead() {
-        return head;
-    }
-
-    public IrCommandList getTailList() {
-        return tail;
-    }
 }

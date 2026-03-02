@@ -12,14 +12,16 @@ package ir;
 /*******************/
 import temp.*;
 
-public class IrCommandJumpIfEqToZero extends IrCommand
+public class IrCommandBinop extends IrCommand
 {
-	public Temp t;
-	public String labelName;
+	public Temp t1;
+	public Temp t2;
+	public Temp dst;
 	
-	public IrCommandJumpIfEqToZero(Temp t, String labelName)
+	public IrCommandBinop(Temp dst, Temp t1, Temp t2)
 	{
-		this.t          = t;
-		this.labelName = labelName;
+		this.dst = dst;
+		this.t1 = t1;
+		this.t2 = t2;
 	}
 }

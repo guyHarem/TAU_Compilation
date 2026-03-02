@@ -10,13 +10,9 @@ package ir;
 /*******************/
 /* PROJECT IMPORTS */
 /*******************/
+import temp.*;
 
-public class IrCommandAllocate extends IrCommand
+public class IrCommandBinopSubIntegers extends IrCommandBinop
 {
-	public String varName;
-	
-	public IrCommandAllocate(String varName)
-	{
-		this.varName = varName;
-	}
+	public IrCommandBinopSubIntegers(Temp dst, Temp t1, Temp t2) { super(dst, t1, t2); }
 }
