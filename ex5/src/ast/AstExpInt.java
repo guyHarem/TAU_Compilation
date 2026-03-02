@@ -1,8 +1,8 @@
 package ast;
 
-import types.*;
-import temp.*;
 import ir.*;
+import temp.*;
+import types.*;
 
 public class AstExpInt extends AstExp
 {
@@ -11,15 +11,15 @@ public class AstExpInt extends AstExp
 	/******************/
 	/* CONSTRUCTOR(S) */
 	/******************/
-	public AstExpInt(int value)
+	public AstExpInt(int value, int lineNum)
 	{
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
 
-		System.out.format("====================== exp -> INT( %d )\n", value);
 		this.value = value;
+		this.line = lineNum;
 	}
 
 	/************************************************/
@@ -45,10 +45,16 @@ public class AstExpInt extends AstExp
 		return TypeInt.getInstance();
 	}
 
+	@Override
+	public Integer evaluateConstant()
+	{
+		return value;
+	}
+
 	public Temp irMe()
 	{
 		Temp t = TempFactory.getInstance().getFreshTemp();
-		Ir.getInstance().AddIrCommand(new IRcommandConstInt(t,value));
+		Ir.getInstance().AddIrCommand(new IrCommandConstInt(t,value));
 		return t;
 	}
 }

@@ -1,7 +1,7 @@
 package ast;
 
-import temp.*;
 import ir.*;
+import temp.*;
 
 public class AstExpCall extends AstExp
 {
@@ -56,11 +56,8 @@ public class AstExpCall extends AstExp
 	public Temp irMe()
 	{
 		Temp t = null;
-
 		if (params != null) { t = params.head.irMe(); }
-
 		Ir.getInstance().AddIrCommand(new IrCommandPrintInt(t));
-
 		return null;
 	}
 }

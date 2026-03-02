@@ -55,6 +55,8 @@ public class AstExpList extends AstNode
 
 	public Temp irMe()
 	{
-		return head.irMe();
+		if (head != null) head.irMe();
+		if (tail != null) tail.irMe();
+		return null;
 	}
 }

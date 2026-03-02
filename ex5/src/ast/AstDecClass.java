@@ -1,7 +1,7 @@
 package ast;
 
-import types.*;
 import symboltable.*;
+import types.*;
 
 public class AstDecClass extends AstDec
 {
@@ -53,31 +53,44 @@ public class AstDecClass extends AstDec
 		AstGraphviz.getInstance().logEdge(serialNumber, dataMembers.serialNumber);
 	}
 	
+	@Override
 	public Type semantMe()
-	{	
+	{
+		/*****************************************/
+		/* [1] Create TypeClass and set context  */
+		/*****************************************/
+		TypeClass t = new TypeClass(null, name, null);
+		SymbolTable.getInstance().setCurrentClass(t);
+
 		/*************************/
-		/* [1] Begin Class Scope */
+		/* [2] Begin Class Scope */
 		/*************************/
 		SymbolTable.getInstance().beginScope();
 
 		/***************************/
-		/* [2] Semant Data Members */
+		/* [3] Semant Data Members */
 		/***************************/
-		TypeClass t = new TypeClass(null,name, dataMembers.semantMe());
+		TypeList memberTypes = dataMembers.semantMe();
+		t.dataMembers = memberTypes;
 
 		/*****************/
-		/* [3] End Scope */
+		/* [4] End Scope */
 		/*****************/
 		SymbolTable.getInstance().endScope();
 
+		/******************************/
+		/* [5] Clear class context    */
+		/******************************/
+		SymbolTable.getInstance().setCurrentClass(null);
+
 		/************************************************/
-		/* [4] Enter the Class Type to the Symbol Table */
+		/* [6] Enter the Class Type to the Symbol Table */
 		/************************************************/
-		SymbolTable.getInstance().enter(name,t);
+		SymbolTable.getInstance().enter(name, t);
 
 		/*********************************************************/
-		/* [5] Return value is irrelevant for class declarations */
+		/* [7] Return value is irrelevant for class declarations */
 		/*********************************************************/
-		return null;		
+		return null;
 	}
 }

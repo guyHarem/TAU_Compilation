@@ -1,7 +1,7 @@
 package ast;
 
-import types.*;
 import temp.*;
+import types.*;
 
 public class AstStmtList extends AstNode
 {
@@ -20,12 +20,6 @@ public class AstStmtList extends AstNode
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
-
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		if (tail != null) System.out.print("====================== stmts -> stmt stmts\n");
-		if (tail == null) System.out.print("====================== stmts -> stmt      \n");
 
 		/*******************************/
 		/* COPY INPUT DATA MEMBERS ... */

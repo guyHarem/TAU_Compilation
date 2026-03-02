@@ -1,7 +1,7 @@
 package ast;
 
-import types.*;
 import temp.*;
+import types.*;
 
 public class AstStmtDecVar extends AstStmt
 {
@@ -45,5 +45,10 @@ public class AstStmtDecVar extends AstStmt
 		return var.semantMe();
 	}
 
-	public Temp irMe() { return var.irMe(); }
+	@Override
+	public Temp irMe() {
+		System.out.println("[DEBUG] AstStmtVarDec irMe");
+		if (var != null) return var.irMe();
+		return null;
+	}
 }

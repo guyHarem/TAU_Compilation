@@ -1,18 +1,19 @@
 package ast;
 
 import temp.*;
+import types.*;
 
 public class AstStmtCall extends AstStmt
 {
 	/****************/
 	/* DATA MEMBERS */
 	/****************/
-	public AstExpCall callExp;
-	
+	public AstCallExp callExp;
+
 	/******************/
 	/* CONSTRUCTOR(S) */
 	/******************/
-	public AstStmtCall(AstExpCall callExp)
+	public AstStmtCall(AstCallExp callExp, int lineNum)
 	{
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
@@ -20,11 +21,12 @@ public class AstStmtCall extends AstStmt
 		serialNumber = AstNodeSerialNumber.getFresh();
 
 		this.callExp = callExp;
+		this.line = lineNum;
 	}
-	
+
 	public void printMe()
 	{
-		callExp.printMe();
+		if (callExp != null) callExp.printMe();
 
 		/***************************************/
 		/* PRINT Node to AST GRAPHVIZ DOT file */
@@ -32,17 +34,25 @@ public class AstStmtCall extends AstStmt
 		AstGraphviz.getInstance().logNode(
                 serialNumber,
 			String.format("STMT\nCALL"));
-		
+
 		/****************************************/
 		/* PRINT Edges to AST GRAPHVIZ DOT file */
 		/****************************************/
-		AstGraphviz.getInstance().logEdge(serialNumber,callExp.serialNumber);
+		if (callExp != null) AstGraphviz.getInstance().logEdge(serialNumber,callExp.serialNumber);
+	}
+
+	@Override
+	public Type semantMe()
+	{
+		if (callExp != null) {
+			callExp.semantMe();
+		}
+		return null;
 	}
 
 	public Temp irMe()
 	{
-		if (callExp != null) callExp.irMe();
-
+		if (callExp != null) return callExp.irMe();
 		return null;
 	}
 }

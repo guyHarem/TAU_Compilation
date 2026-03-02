@@ -1,8 +1,7 @@
 package ast;
 
-import types.*;
 import temp.*;
-import ir.*;
+import types.*;
 
 public class AstDecList extends AstNode
 {
@@ -66,12 +65,13 @@ public class AstDecList extends AstNode
 
 		return null;
 	}
-
+	
+    @Override
 	public Temp irMe()
 	{
+		System.out.println("[DEBUG] AstDecList irMe");
 		if (head != null) head.irMe();
 		if (tail != null) tail.irMe();
-
 		return null;
 	}
 }

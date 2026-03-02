@@ -1,91 +1,74 @@
 package ast;
 
-import types.*;
-import temp.*;
 import ir.*;
+import temp.*;
+import types.*;
 
-public class AstStmtAssign extends AstStmt
-{
-	/***************/
-	/*  var := exp */
-	/***************/
-	public AstExpVar var;
-	public AstExp exp;
+public class AstStmtAssign extends AstStmt {
+    public AstVar var;
+    public AstExp exp;
 
-	/*******************/
-	/*  CONSTRUCTOR(S) */
-	/*******************/
-	public AstStmtAssign(AstExpVar var, AstExp exp)
-	{
-		/******************************/
-		/* SET A UNIQUE SERIAL NUMBER */
-		/******************************/
-		serialNumber = AstNodeSerialNumber.getFresh();
+    public AstStmtAssign(AstVar var, AstExp exp, int line) {
+        serialNumber = AstNodeSerialNumber.getFresh();
+        this.var = var;
+        this.exp = exp;
+        this.line = line;
+    }
 
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.print("====================== stmt -> var ASSIGN exp SEMICOLON\n");
+    @Override
+    public void printMe() {
+        System.out.print("AST NODE ASSIGN STMT\n");
+        if (var != null) var.printMe();
+        if (exp != null) exp.printMe();
 
-		/*******************************/
-		/* COPY INPUT DATA MENBERS ... */
-		/*******************************/
-		this.var = var;
-		this.exp = exp;
-	}
+        AstGraphviz.getInstance().logNode(serialNumber, "ASSIGN\nleft := right\n");
+        AstGraphviz.getInstance().logEdge(serialNumber, var.serialNumber);
+        AstGraphviz.getInstance().logEdge(serialNumber, exp.serialNumber);
+    }
 
-	/*********************************************************/
-	/* The printing message for an assign statement AST node */
-	/*********************************************************/
-	public void printMe()
-	{
-		/********************************************/
-		/* AST NODE TYPE = AST ASSIGNMENT STATEMENT */
-		/********************************************/
-		System.out.print("AST NODE ASSIGN STMT\n");
+    @Override
+    public Type semantMe() {
+        Type varType = null;
+        Type expType = null;
 
-		/***********************************/
-		/* RECURSIVELY PRINT VAR + EXP ... */
-		/***********************************/
-		if (var != null) var.printMe();
-		if (exp != null) exp.printMe();
+        if (var != null) varType = var.semantMe();
+        if (exp != null) expType = exp.semantMe();
 
-		/***************************************/
-		/* PRINT Node to AST GRAPHVIZ DOT file */
-		/***************************************/
-		AstGraphviz.getInstance().logNode(
-                serialNumber,
-			"ASSIGN\nleft := right\n");
-		
-		/****************************************/
-		/* PRINT Edges to AST GRAPHVIZ DOT file */
-		/****************************************/
-		AstGraphviz.getInstance().logEdge(serialNumber,var.serialNumber);
-		AstGraphviz.getInstance().logEdge(serialNumber,exp.serialNumber);
-	}
+        if (!isAssignable(varType, expType)) {
+            throw new SemanticError(line, "type mismatch for var := exp");
+        }
+        return null;
+    }
 
-	public Type semantMe()
-	{
-		Type t1 = null;
-		Type t2 = null;
-		
-		if (var != null) t1 = var.semantMe();
-		if (exp != null) t2 = exp.semantMe();
-		
-		if (t1 != t2)
-		{
-			System.out.format(">> ERROR [%d:%d] type mismatch for var := exp\n",6,6);				
-		}
-		return null;
-	}
+    private boolean isAssignable(Type varType, Type expType) {
+        if (varType == expType) return true;
+        if (expType instanceof TypeNil) {
+            return (varType instanceof TypeClass) || (varType instanceof TypeArray);
+        }
+        if (varType instanceof TypeClass && expType instanceof TypeClass) {
+            return ((TypeClass)expType).isDescendantOf((TypeClass)varType);
+        }
+        if (varType instanceof TypeArray && expType instanceof TypeArray) {
+            TypeArray varArr = (TypeArray) varType;
+            TypeArray expArr = (TypeArray) expType;
+            if (expArr.name.endsWith("[]") && varArr.elementType == expArr.elementType) {
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
 
-	public Temp irMe()
-	{
-		Temp src = exp.irMe();
-		Ir.
-				getInstance().
-				AddIrCommand(new IrCommandStore(((AstExpVarSimple) var).name,src));
-
-		return null;
-	}
+    @Override
+    public Temp irMe() {
+        Temp src = exp.irMe();      
+        
+        if (var instanceof AstVarSimple) {
+            AstVarSimple astVarSimple = (AstVarSimple) var;
+            Ir.getInstance().AddIrCommand(new IrCommandStore(astVarSimple.unique_name, src));
+        } else {
+            var.irMe(); 
+        }
+        return null;
+    }
 }
