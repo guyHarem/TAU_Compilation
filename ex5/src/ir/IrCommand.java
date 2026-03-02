@@ -21,4 +21,6 @@ public abstract class IrCommand
 	{
 		return String.format("Label_%d_%s", labelCounter++,msg);
 	}
+	
+	public abstract void mipsMe();
 }

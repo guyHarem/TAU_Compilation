@@ -10,6 +10,7 @@ package ir;
 /*******************/
 /* PROJECT IMPORTS */
 /*******************/
+import mips.*;
 import temp.*;
 
 public class IrCommandJumpIfEqToZero extends IrCommand
@@ -21,5 +22,10 @@ public class IrCommandJumpIfEqToZero extends IrCommand
 	{
 		this.t          = t;
 		this.labelName = labelName;
+	}
+	
+	public void mipsMe()
+	{
+		MipsGenerator.getInstance().beqz(t, labelName);
 	}
 }

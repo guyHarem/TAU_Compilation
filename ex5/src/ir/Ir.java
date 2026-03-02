@@ -76,4 +76,10 @@ public class Ir
     public IrCommandList getTailList() {
         return tail;
     }
+	
+	public void mipsMe()
+	{
+		if (head != null) head.mipsMe();
+		if (tail != null) tail.mipsMe();
+	}
 }

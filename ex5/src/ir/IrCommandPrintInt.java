@@ -10,6 +10,7 @@ package ir;
 /*******************/
 /* PROJECT IMPORTS */
 /*******************/
+import mips.*;
 import temp.*;
 
 public class IrCommandPrintInt extends IrCommand
@@ -19,5 +20,10 @@ public class IrCommandPrintInt extends IrCommand
 	public IrCommandPrintInt(Temp t)
 	{
 		this.t = t;
+	}
+	
+	public void mipsMe()
+	{
+		MipsGenerator.getInstance().printInt(t);
 	}
 }

@@ -7,10 +7,6 @@ package mips;
 /* GENERAL IMPORTS */
 /*******************/
 import java.io.PrintWriter;
-
-/*******************/
-/* PROJECT IMPORTS */
-/*******************/
 import temp.*;
 
 public class MipsGenerator
@@ -30,6 +26,7 @@ public class MipsGenerator
 		fileWriter.print("\tsyscall\n");
 		fileWriter.close();
 	}
+	
 	public void printInt(Temp t)
 	{
 		int idx=t.getSerialNumber();
@@ -41,6 +38,7 @@ public class MipsGenerator
 		fileWriter.format("\tli $v0,11\n");
 		fileWriter.format("\tsyscall\n");
 	}
+
 //	public Temp addressLocalVar(int serialLocalVarNum)
 //	{
 //		Temp t  = TempFactory.getInstance().getFreshTemp();
@@ -50,26 +48,31 @@ public class MipsGenerator
 //
 //		return t;
 //	}
+
 	public void allocate(String varName)
 	{
 		fileWriter.format(".data\n");
 		fileWriter.format("\tglobal_%s: .word 721\n",varName);
 	}
+
 	public void load(Temp dst, String varName)
 	{
 		int idxdst=dst.getSerialNumber();
 		fileWriter.format("\tlw Temp_%d,global_%s\n",idxdst,varName);
 	}
+
 	public void store(String varName, Temp src)
 	{
 		int idxsrc=src.getSerialNumber();
 		fileWriter.format("\tsw Temp_%d,global_%s\n",idxsrc,varName);
 	}
+
 	public void li(Temp t, int value)
 	{
 		int idx=t.getSerialNumber();
 		fileWriter.format("\tli Temp_%d,%d\n",idx,value);
 	}
+
 	public void add(Temp dst, Temp oprnd1, Temp oprnd2)
 	{
 		int i1 =oprnd1.getSerialNumber();
@@ -78,6 +81,16 @@ public class MipsGenerator
 
 		fileWriter.format("\tadd Temp_%d,Temp_%d,Temp_%d\n",dstidx,i1,i2);
 	}
+
+	public void sub(Temp dst, Temp oprnd1, Temp oprnd2)
+	{
+		int i1 =oprnd1.getSerialNumber();
+		int i2 =oprnd2.getSerialNumber();
+		int dstidx=dst.getSerialNumber();
+
+		fileWriter.format("\tsub Temp_%d,Temp_%d,Temp_%d\n",dstidx,i1,i2);
+	}
+
 	public void mul(Temp dst, Temp oprnd1, Temp oprnd2)
 	{
 		int i1 =oprnd1.getSerialNumber();
@@ -86,6 +99,13 @@ public class MipsGenerator
 
 		fileWriter.format("\tmul Temp_%d,Temp_%d,Temp_%d\n",dstidx,i1,i2);
 	}
+
+	public void div(Temp dst, Temp oprnd1, Temp oprnd2)
+	{
+		// TODO: Implement (not simple).
+		throw new RuntimeException("Not implemented");
+	}
+
 	public void label(String inlabel)
 	{
 		if (inlabel.equals("main"))
@@ -97,11 +117,13 @@ public class MipsGenerator
 		{
 			fileWriter.format("%s:\n",inlabel);
 		}
-	}	
+	}
+
 	public void jump(String inlabel)
 	{
 		fileWriter.format("\tj %s\n",inlabel);
 	}	
+
 	public void blt(Temp oprnd1, Temp oprnd2, String label)
 	{
 		int i1 =oprnd1.getSerialNumber();
@@ -109,6 +131,7 @@ public class MipsGenerator
 		
 		fileWriter.format("\tblt Temp_%d,Temp_%d,%s\n",i1,i2,label);				
 	}
+
 	public void bge(Temp oprnd1, Temp oprnd2, String label)
 	{
 		int i1 =oprnd1.getSerialNumber();
@@ -116,6 +139,7 @@ public class MipsGenerator
 		
 		fileWriter.format("\tbge Temp_%d,Temp_%d,%s\n",i1,i2,label);				
 	}
+
 	public void bne(Temp oprnd1, Temp oprnd2, String label)
 	{
 		int i1 =oprnd1.getSerialNumber();
@@ -123,6 +147,7 @@ public class MipsGenerator
 		
 		fileWriter.format("\tbne Temp_%d,Temp_%d,%s\n",i1,i2,label);				
 	}
+	
 	public void beq(Temp oprnd1, Temp oprnd2, String label)
 	{
 		int i1 =oprnd1.getSerialNumber();
@@ -130,6 +155,7 @@ public class MipsGenerator
 		
 		fileWriter.format("\tbeq Temp_%d,Temp_%d,%s\n",i1,i2,label);				
 	}
+
 	public void beqz(Temp oprnd1, String label)
 	{
 		int i1 =oprnd1.getSerialNumber();

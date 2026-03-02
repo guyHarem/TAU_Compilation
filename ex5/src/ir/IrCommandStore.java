@@ -10,6 +10,7 @@ package ir;
 /*******************/
 /* PROJECT IMPORTS */
 /*******************/
+import mips.*;
 import temp.*;
 
 public class IrCommandStore extends IrCommand
@@ -21,5 +22,10 @@ public class IrCommandStore extends IrCommand
 	{
 		this.src      = src;
 		this.varName = varName;
+	}
+
+	public void mipsMe()
+	{
+		MipsGenerator.getInstance().store(varName,src);
 	}
 }
