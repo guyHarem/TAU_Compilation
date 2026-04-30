@@ -47,7 +47,6 @@ public class AstStmtDecVar extends AstStmt
 
 	@Override
 	public Temp irMe() {
-		System.out.println("[DEBUG] AstStmtVarDec irMe");
 		if (var != null) return var.irMe();
 		return null;
 	}

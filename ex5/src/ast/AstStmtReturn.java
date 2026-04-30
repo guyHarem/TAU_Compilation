@@ -1,7 +1,9 @@
 package ast;
 
-import types.*;
+import ir.*;
 import symboltable.*;
+import temp.*;
+import types.*;
 
 public class AstStmtReturn extends AstStmt
 {
@@ -9,6 +11,7 @@ public class AstStmtReturn extends AstStmt
 	/* DATA MEMBERS */
 	/****************/
 	public AstExp exp;
+	public String funcName;
 
 	/*******************/
 	/*  CONSTRUCTOR(S) */
@@ -62,6 +65,7 @@ public class AstStmtReturn extends AstStmt
 		if (currentFunc == null) {
 			throw new SemanticError(line, "return statement outside of function");
 		}
+		this.funcName = currentFunc.name;
 		Type expectedReturnType = currentFunc.returnType;
 
 		/******************************************/
@@ -106,5 +110,14 @@ public class AstStmtReturn extends AstStmt
 		}
 
 		return false;
+	}
+
+	@Override
+	public Temp irMe() {
+		Temp t = null;
+		if (exp != null) t = exp.irMe(); // If the function is not void, evaluate the return expression
+		Ir.getInstance().AddIrCommand(new IrCommandReturn(t));
+		// if (!this.funcName.equals("main")) 
+		return null; 
 	}
 }

@@ -21,8 +21,10 @@ public class IrCommandLabel extends IrCommand
 		this.labelName = labelName;
 	}
 	
+	@Override
 	public void mipsMe()
 	{
+		System.out.println("[CODGEN] IrCommandLabel mipsMe: " + labelName);
 		MipsGenerator.getInstance().label(labelName);
 	}
 }

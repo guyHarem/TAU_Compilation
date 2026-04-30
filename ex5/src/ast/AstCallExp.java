@@ -7,6 +7,7 @@ import types.*;
 
 public class AstCallExp extends AstExp {
     public AstVar var;
+    public Type retType;
     public String funcName;
     public AstList<AstExp> args;
 
@@ -103,6 +104,7 @@ public class AstCallExp extends AstExp {
         /******************************************/
         /* [3] Return the function's return type  */
         /******************************************/
+        this.retType = funcType.returnType;
         return funcType.returnType;
     }
 
@@ -136,12 +138,35 @@ public class AstCallExp extends AstExp {
         return false;
     }
 
-    @Override
-	public Temp irMe()
-	{
-		Temp t = null;
-		if (args != null && args.head != null) { t = args.head.irMe(); }
-		Ir.getInstance().AddIrCommand(new IrCommandPrintInt(t));
-		return null;
-	}
+    public Temp irMe() {
+        System.out.println("[DEBUG] AstCallExp func: " + this.funcName);
+        Temp retval;
+        Temp varTemp = (this.var == null ? null : this.var.irMe());
+
+        // Evaluate arguments Left-to-Right
+        int numArgs = 0;
+        for (AstList<AstExp> it = this.args; it != null; it = it.tail) numArgs++;
+        Temp[] argTemps = new Temp[numArgs];
+        int i = 0;
+        for (AstList<AstExp> it = this.args; it != null; it = it.tail) {
+            argTemps[i++] = it.head.irMe();
+        }
+
+        // Handle Library syscalls
+        if (this.funcName.equals("PrintInt")) {
+            Ir.getInstance().AddIrCommand(new IrCommandPrintInt(argTemps[0])); // Syscall 1
+            return null; // PrintInt is void
+        }
+        if (this.funcName.equals("PrintString")) {
+            Ir.getInstance().AddIrCommand(new IrCommandPrintString(argTemps[0])); // Syscall 4
+            return null; // PrintString is void
+        }
+
+        // General Function/Method Call
+        // TODO: Check if void.
+        if (this.retType.name.equals("void")) retval = null;
+        else retval = TempFactory.getInstance().getFreshTemp();
+        Ir.getInstance().AddIrCommand(new IrCommandCall(retval, varTemp, this.funcName, argTemps));
+        return retval; 
+    }
 }

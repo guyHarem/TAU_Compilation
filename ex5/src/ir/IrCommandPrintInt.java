@@ -27,3 +27,4 @@ public class IrCommandPrintInt extends IrCommand
 		MipsGenerator.getInstance().printInt(t);
 	}
 }
+

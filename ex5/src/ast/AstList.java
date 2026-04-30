@@ -33,7 +33,6 @@ public class AstList<T extends AstNode> extends AstNode {
 	
 	public Temp irMe()
 	{
-		System.out.println("[DEBUG] AstList irMe");
 		if (head != null) head.irMe();
 		if (tail != null) tail.irMe();
 		return null;

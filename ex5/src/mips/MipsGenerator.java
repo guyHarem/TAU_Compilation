@@ -22,8 +22,9 @@ public class MipsGenerator
 	/***********************/
 	public void finalizeFile()
 	{
-		fileWriter.print("\tli $v0,10\n");
-		fileWriter.print("\tsyscall\n");
+		// We do this in exit:
+		// fileWriter.print("\tli $v0,10\n");
+		// fileWriter.print("\tsyscall\n");
 		fileWriter.close();
 	}
 	
@@ -37,6 +38,13 @@ public class MipsGenerator
 		fileWriter.format("\tli $a0,32\n");
 		fileWriter.format("\tli $v0,11\n");
 		fileWriter.format("\tsyscall\n");
+	}
+	
+	public void printString(Temp t)
+	{
+		fileWriter.format("\tmove $a0, Temp_%d\n", t.getSerialNumber());
+		fileWriter.println("\tli $v0, 4");
+		fileWriter.println("\tsyscall");
 	}
 
 //	public Temp addressLocalVar(int serialLocalVarNum)
@@ -108,15 +116,21 @@ public class MipsGenerator
 
 	public void label(String inlabel)
 	{
-		if (inlabel.equals("main"))
-		{
+		if (inlabel.equals("_start")) {
+			fileWriter.format(".globl " + inlabel + "\n\n");
 			fileWriter.format(".text\n");
-			fileWriter.format("%s:\n",inlabel);
 		}
-		else
-		{
-			fileWriter.format("%s:\n",inlabel);
-		}
+		fileWriter.format("\n%s:\n",inlabel);
+
+		// if (inlabel.equals("main"))
+		// {
+		// 	fileWriter.format(".text\n");
+		// 	fileWriter.format("%s:\n",inlabel);
+		// }
+		// else
+		// {
+		// 	fileWriter.format("%s:\n",inlabel);
+		// }
 	}
 
 	public void jump(String inlabel)
@@ -172,6 +186,26 @@ public class MipsGenerator
 		// Implement array allocation (including length prefix)
 		// Should also generate code for the "size > 0" runtime check
 	}
+
+	public void move(String targetReg, Temp src) {
+		// Moves value from a temporary to a physical register (e.g., $a0)
+		fileWriter.format("\tmove %s, Temp_%d\n", targetReg, src.getSerialNumber());
+	}
+
+	public void jal(String label) {
+		// Jump and Link to the function label
+		fileWriter.format("\tjal %s\n", label);
+	}
+
+	public void moveFromV0(Temp dst) {
+		// Move return value from $v0 to the destination temporary
+		fileWriter.format("\tmove Temp_%d, $v0\n", dst.getSerialNumber());
+	}
+
+	public void exit() {
+		fileWriter.println("\tli $v0, 10");
+		fileWriter.println("\tsyscall");
+	}
 	
 	/**************************************/
 	/* USUAL SINGLETON IMPLEMENTATION ... */
@@ -206,7 +240,7 @@ public class MipsGenerator
 				/***************************************/
 				/* [2] Open MIPS text file for writing */
 				/***************************************/
-				instance.fileWriter = new PrintWriter(dirname+filename);
+				instance.fileWriter = new PrintWriter(dirname + filename);
 			}
 			catch (Exception e)
 			{

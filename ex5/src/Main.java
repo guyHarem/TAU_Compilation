@@ -12,11 +12,11 @@ public class Main
 		Lexer l;
 		Parser p;
 		Symbol s;
-		AstDecList ast;
+		AstProgram ast;
 		FileReader fileReader;
 		PrintWriter fileWriter;
 		String inputFileName = argv[0];
-		String outputFileName = argv[1];
+		// String outputFileName = argv[1];
 
 		try
 		{
@@ -25,10 +25,10 @@ public class Main
 			/********************************/
 			fileReader = new FileReader(inputFileName);
 
-			/********************************/
-			/* [2] Initialize a file writer */
-			/********************************/
-			fileWriter = new PrintWriter(outputFileName);
+			// /********************************/
+			// /* [2] Initialize a file writer */
+			// /********************************/
+			// fileWriter = new PrintWriter(outputFileName);
 
 			/******************************/
 			/* [3] Initialize a new lexer */
@@ -43,7 +43,7 @@ public class Main
 			/***********************************/
 			/* [5] 3 ... 2 ... 1 ... Parse !!! */
 			/***********************************/
-			ast = (AstDecList) p.parse().value;
+			ast = (AstProgram) p.parse().value;
 
 			/*************************/
 			/* [6] Print the AST ... */
@@ -75,10 +75,10 @@ public class Main
 			/***************************/
 			MipsGenerator.getInstance().finalizeFile();
 
-			/**************************/
-			/* [12] Close output file */
-			/**************************/
-			fileWriter.close();
+			// /**************************/
+			// /* [12] Close output file */
+			// /**************************/
+			// fileWriter.close();
 		}
 
 		catch (Exception e)

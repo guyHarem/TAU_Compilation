@@ -34,9 +34,12 @@ public class AstProgram extends AstNode {
 
     @Override
     public Temp irMe() {
-		System.out.println("[DEBUG] AstProgram irMe: " + decList);
-        if (decList != null) decList.irMe(); 
-        Ir.getInstance().AddIrCommand(new IrCommandJumpLabel("main"));
+        // TODO: Initialize global vars.
+		Ir.getInstance().AddIrCommand(new IrCommandLabel("_start"));
+		Ir.getInstance().AddIrCommand(new IrCommandJumpLabel("main"));
+		Ir.getInstance().AddIrCommand(new IrCommandExit());
+
+        if (decList != null) decList.irMe();
         return null;
     }
 }

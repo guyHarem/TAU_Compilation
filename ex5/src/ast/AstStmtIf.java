@@ -89,6 +89,7 @@ public class AstStmtIf extends AstStmt
 	@Override
 	public Temp irMe()
 	{
+		System.out.println("[DEBUG] AstStmtReturn if [line=" + this.line + "]");
 		String labelEnd = IrCommand.getFreshLabel("end");
 		Temp condTemp = cond.irMe();
 		Ir.getInstance().AddIrCommand(new IrCommandJumpIfEqToZero(condTemp, labelEnd));
