@@ -128,6 +128,12 @@ public class AstFuncDec extends AstDec {
 		// Ir.getInstance().AddIrCommand(new IrCommandJumpLabel(labelEnd));
 		Ir.getInstance().AddIrCommand(new IrCommandLabel(name)); // TODO: Check that rettype=void for main?
 		if (body != null) body.irMe();
+
+        /*
+        If the function is a VOID function, it's allowed to not have a 'return' at the end. So add it.
+        (TODO: Cause error if there's no return in a non-void function [during the semantic phase]).
+        */
+        if (this.type.name.equals("void")) Ir.getInstance().AddIrCommand(new IrCommandReturn(null));
 		// Ir.getInstance().AddIrCommand(new IrCommandLabel(labelEnd));
 
         // if (this.name.equals("main")) Ir.getInstance().AddIrCommand(new IrCommandExit());

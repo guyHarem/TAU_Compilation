@@ -7,17 +7,19 @@ string_invalid_ptr_dref: .asciiz "Invalid Pointer Dereference"
 .text
 
 _start:
-	j main
+	subu $sp, $sp, 4
+	sw $ra, 0($sp)
+	jal main
+	lw $ra, 0($sp)
+	addu $sp, $sp, 4
 	li $v0, 10
 	syscall
 
 IsPrime:
-.data
-	global_i@1: .word 721
+global_i@1: .word 0
 	li Temp_0,2
 	sw Temp_0,global_i@1
-.data
-	global_j@1: .word 721
+global_j@1: .word 0
 	li Temp_1,2
 	sw Temp_1,global_j@1
 
@@ -74,6 +76,8 @@ Label_16_AssignZero:
 Label_14_end:
 	beq Temp_9,$zero,Label_4_end
 	li Temp_14,0
+	move $v0, Temp_14
+	jr $ra
 
 Label_4_end:
 	lw Temp_16,global_j@1
@@ -91,10 +95,11 @@ Label_2_end:
 
 Label_0_end:
 	li Temp_21,1
+	move $v0, Temp_21
+	jr $ra
 
 PrintPrimes:
-.data
-	global_p@1: .word 721
+global_p@1: .word 0
 	lw Temp_22,global_start@1
 	sw Temp_22,global_p@1
 
@@ -117,9 +122,13 @@ Label_19_AssignZero:
 Label_17_end:
 	beq Temp_23,$zero,Label_5_end
 	lw Temp_28,global_p@1
+	subu $sp, $sp, 4
+	sw $ra, 0($sp)
 	move $a0, Temp_28
 	jal IsPrime
 	move Temp_29, $v0
+	lw $ra, 0($sp)
+	addu $sp, $sp, 4
 	beq Temp_29,$zero,Label_7_end
 	lw Temp_30,global_p@1
 	move $a0,Temp_30
@@ -137,10 +146,16 @@ Label_7_end:
 	j Label_6_start
 
 Label_5_end:
+	jr $ra
 
 main:
 	li Temp_34,2
 	li Temp_35,100
+	subu $sp, $sp, 4
+	sw $ra, 0($sp)
 	move $a0, Temp_34
 	move $a1, Temp_35
 	jal PrintPrimes
+	lw $ra, 0($sp)
+	addu $sp, $sp, 4
+	jr $ra

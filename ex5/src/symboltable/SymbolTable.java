@@ -44,16 +44,15 @@ public class SymbolTable
 	/****************************************************************************/
 	/* Enter a variable, function, class type or array type to the symbol table */
 	/****************************************************************************/
-	public void enter(String name, Type t) {
+	public SymbolTableEntry enter(String name, Type t) {
         int hashValue = hash(name);
         SymbolTableEntry next = table[hashValue];
         
-        // Include currentScopeLevel in the constructor
+        // Use the current top and topIndex for stack-based scope management
         SymbolTableEntry e = new SymbolTableEntry(name, t, hashValue, next, top, topIndex++, currentScopeLevel);
-        
         top = e;
         table[hashValue] = e;
-        printMe();
+        return e;
     }
 
 	/***********************************************/
@@ -99,47 +98,25 @@ public class SymbolTable
 	/* Find name in all nested scopes (not global) */
 	/* Global scope = entries before any SCOPE-BOUNDARY */
 	/***********************************************/
-	public Type findExcludingGlobal(String name)
-	{
-		// First, count total scope boundaries
-		int totalBoundaries = 0;
-		for (SymbolTableEntry e = top; e != null; e = e.prevtop)
-		{
-			if (e.name.equals("SCOPE-BOUNDARY"))
-			{
-				totalBoundaries++;
-			}
-		}
+	public SymbolTableEntry findEntryExcludingGlobal(String name) {
+        int totalBoundaries = 0;
+        for (SymbolTableEntry e = top; e != null; e = e.prevtop) {
+            if (e.name.equals("SCOPE-BOUNDARY")) totalBoundaries++;
+        }
+        if (totalBoundaries == 0) return null;
 
-		// If no boundaries, everything is global
-		if (totalBoundaries == 0)
-		{
-			return null;
-		}
-
-		// Search, stopping when we've crossed all boundaries (entering global)
-		int boundariesCrossed = 0;
-		for (SymbolTableEntry e = top; e != null; e = e.prevtop)
-		{
-			if (e.name.equals("SCOPE-BOUNDARY"))
-			{
-				boundariesCrossed++;
-				if (boundariesCrossed == totalBoundaries)
-				{
-					// About to enter global scope, stop
-					return null;
-				}
-				continue;
-			}
-			if (name.equals(e.name))
-			{
-				// Found in nested scope (not global)
-				return e.type;
-			}
-		}
-		return null;
-	}
-
+        int boundariesCrossed = 0;
+        for (SymbolTableEntry e = top; e != null; e = e.prevtop) {
+            if (e.name.equals("SCOPE-BOUNDARY")) {
+                boundariesCrossed++;
+                if (boundariesCrossed == totalBoundaries) return null;
+                continue;
+            }
+            if (name.equals(e.name)) return e;
+        }
+        return null;
+    }
+	
 	/***************************************************************************/
 	/* begine scope = Enter the <SCOPE-BOUNDARY> element to the data structure */
 	/***************************************************************************/

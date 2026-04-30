@@ -18,13 +18,15 @@ public class IrCommandCall extends IrCommand {
 
     @Override
     public void mipsMe() {
-        // Pass arguments to $a0, $a1, $a2, $a3
-        // TODO: Change and support >= 4
-        for (int i = 0; i < args.length && i < 4; i++) {
-            MipsGenerator.getInstance().move(
-                String.format("$a%d", i), 
-                args[i]
-            );
+        MipsGenerator.getInstance().pushReg("$ra");
+        for (int i = 0; i < args.length; i++) {
+            if (i < 4) {
+                // Use $a0 - $a3
+                MipsGenerator.getInstance().moveToReg(String.format("$a%d", i), args[i]);
+            } else {
+                // Push remaining args to stack
+                MipsGenerator.getInstance().pushTemp(args[i]);
+            }
         }
 
         // TODO: If it's a method call, ensure the receiver is in $a0 or handled
@@ -36,7 +38,8 @@ public class IrCommandCall extends IrCommand {
         // Move the result from $v0 to our destination temporary
         // Table 1 shows that return values/results typically reside in $v0 
         if (dst != null) {
-            MipsGenerator.getInstance().moveFromV0(dst);
+            MipsGenerator.getInstance().moveFromReg("$v0", dst);
         }
+        MipsGenerator.getInstance().popReg("$ra");
     }
 }

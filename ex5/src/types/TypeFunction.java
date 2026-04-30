@@ -21,4 +21,7 @@ public class TypeFunction extends Type
 		this.returnType = returnType;
 		this.params = params;
 	}
+
+	@Override
+	public boolean isFunction() { return true; }
 }

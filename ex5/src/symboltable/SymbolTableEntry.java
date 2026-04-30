@@ -6,6 +6,7 @@ package symboltable;
 /*******************/
 /* PROJECT IMPORTS */
 /*******************/
+import temp.*;
 import types.*;
 
 public class SymbolTableEntry {
@@ -16,6 +17,7 @@ public class SymbolTableEntry {
     public SymbolTableEntry next;
     public int prevtopIndex;
     public int scopeLevel;
+    public Temp temp;
 
     public SymbolTableEntry(
         String name,

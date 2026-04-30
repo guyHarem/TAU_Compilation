@@ -36,7 +36,7 @@ public class AstProgram extends AstNode {
     public Temp irMe() {
         // TODO: Initialize global vars.
 		Ir.getInstance().AddIrCommand(new IrCommandLabel("_start"));
-		Ir.getInstance().AddIrCommand(new IrCommandJumpLabel("main"));
+		Ir.getInstance().AddIrCommand(new IrCommandCall(null, null, "main", new Temp[]{}));
 		Ir.getInstance().AddIrCommand(new IrCommandExit());
 
         if (decList != null) decList.irMe();

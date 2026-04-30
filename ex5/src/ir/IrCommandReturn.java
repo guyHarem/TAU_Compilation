@@ -10,6 +10,7 @@ package ir;
 /*******************/
 /* PROJECT IMPORTS */
 /*******************/
+import mips.*;
 import temp.*;
 
 // TODO: Actually add return value in excercise 5. Also add conversion to mips.
@@ -24,6 +25,9 @@ public class IrCommandReturn extends IrCommand
 
 	public void mipsMe()
 	{
-		// TODO.
+		if (retval != null) {
+			MipsGenerator.getInstance().moveToReg("$v0", retval);
+		}
+		MipsGenerator.getInstance().ret();
 	}
 }

@@ -17,6 +17,10 @@ public class MipsGenerator
 	/***********************/
 	private PrintWriter fileWriter;
 
+	private String tempToString(Temp t) {
+		return String.format("Temp_%s", t.getSerialNumber());
+	}
+
 	/***********************/
 	/* The file writer ... */
 	/***********************/
@@ -57,19 +61,31 @@ public class MipsGenerator
 //		return t;
 //	}
 
-	public void allocate(String varName)
-	{
-		fileWriter.format(".data\n");
-		fileWriter.format("\tglobal_%s: .word 721\n",varName);
+	public void allocate(String varName) {
+		// Call this ONLY during a "Data Phase" at the start of your program
+		fileWriter.format("global_%s: .word 0\n", varName); 
 	}
 
-	public void load(Temp dst, String varName)
+	public void dataSection() { fileWriter.format(".data\n"); }
+	public void textSection() { fileWriter.format(".text\n"); }
+
+	public void loadField(Temp dst, Temp objectBase, int offset) {
+		// MIPS: lw $dst, offset($base)
+        fileWriter.format("\tlw Temp_%d, %d(Temp_%d)\n", dst.getSerialNumber(), offset, objectBase.getSerialNumber());
+    }
+
+    public void storeField(Temp src, Temp objectBase, int offset) {
+		// MIPS: sw $src, offset($base)
+        fileWriter.format("\tsw Temp_%d, %d(Temp_%d)\n", src.getSerialNumber(), offset, objectBase.getSerialNumber());
+    }
+
+	public void loadGlobal(Temp dst, String varName)
 	{
 		int idxdst=dst.getSerialNumber();
 		fileWriter.format("\tlw Temp_%d,global_%s\n",idxdst,varName);
 	}
 
-	public void store(String varName, Temp src)
+	public void storeGlobal(String varName, Temp src)
 	{
 		int idxsrc=src.getSerialNumber();
 		fileWriter.format("\tsw Temp_%d,global_%s\n",idxsrc,varName);
@@ -117,8 +133,8 @@ public class MipsGenerator
 	public void label(String inlabel)
 	{
 		if (inlabel.equals("_start")) {
-			fileWriter.format(".globl " + inlabel + "\n\n");
-			fileWriter.format(".text\n");
+			fileWriter.format("\n.globl " + inlabel + "\n");
+			textSection();
 		}
 		fileWriter.format("\n%s:\n",inlabel);
 
@@ -187,19 +203,45 @@ public class MipsGenerator
 		// Should also generate code for the "size > 0" runtime check
 	}
 
-	public void move(String targetReg, Temp src) {
+	public void moveToReg(String targetReg, Temp src) {
 		// Moves value from a temporary to a physical register (e.g., $a0)
 		fileWriter.format("\tmove %s, Temp_%d\n", targetReg, src.getSerialNumber());
+	}
+
+	public void moveFromReg(String srcReg, Temp src) {
+		// Moves value from a temporary to a physical register (e.g., $a0)
+		fileWriter.format("\tmove Temp_%d, %s\n", src.getSerialNumber(), srcReg);
+	}
+
+	public void pushw(String s) {
+        fileWriter.format("\tsubu $sp, $sp, %d\n", WORD_SIZE);
+        fileWriter.format("\tsw %s, 0($sp)\n", s);
+    }
+
+    public void popw(String s) {
+        fileWriter.format("\tlw %s, 0($sp)\n", s);
+        fileWriter.format("\taddu $sp, $sp, %d\n", WORD_SIZE);
+    }
+
+	public void pushReg(String reg) {
+		pushw(reg);
+	}
+
+	public void popReg(String reg) {
+		popw(reg);
+	}
+	
+	public void pushTemp(Temp t) {
+		pushw(tempToString(t));
+	}
+
+	public void ret() {
+		fileWriter.format("\tjr $ra\n");
 	}
 
 	public void jal(String label) {
 		// Jump and Link to the function label
 		fileWriter.format("\tjal %s\n", label);
-	}
-
-	public void moveFromV0(Temp dst) {
-		// Move return value from $v0 to the destination temporary
-		fileWriter.format("\tmove Temp_%d, $v0\n", dst.getSerialNumber());
 	}
 
 	public void exit() {
