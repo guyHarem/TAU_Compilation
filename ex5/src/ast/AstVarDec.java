@@ -95,9 +95,9 @@ public class AstVarDec extends AstDec {
                 Ir.getInstance().activeList = Ir.getInstance().commands;
             }
         } else {
-            // Ir.getInstance().AddIrCommand(new IrCommandAllocateLocal(unique_name));
+            // Ir.getInstance().AddIrCommand(new IrCommandAllocateLocal(unique_name)); (TODO)
             if (exp != null) {
-                Ir.getInstance().AddIrCommand(new IrCommandStoreLocal(this.temp, exp.irMe()));
+                Ir.getInstance().AddIrCommand(new IrCommandMove(this.temp, exp.irMe()));
             }
         }
         return null;

@@ -17,6 +17,14 @@ public class MipsGenerator
 	/***********************/
 	private PrintWriter fileWriter;
 	
+	public static String LABEL_STRLEN			= "label_strlen";
+	public static String LABEL_STRCOPY			= "label_strcpy";
+	public static String LABEL_STR_CONCAT		= "label_str_concat";
+
+	public static String LABEL_ACCESS_VIOLATION	= "label_access_violation";
+	public static String LABEL_DIV0				= "label_illegal_div_by_0";
+	public static String LABEL_INV_PTR			= "label_invalid_ptr_dref";
+	
 	public static String STRING_ACCESS_VIOLATION	= "string_access_violation";
 	public static String STRING_DIV0				= "string_illegal_div_by_0";
 	public static String STRING_INV_PTR				= "string_invalid_ptr_dref";
@@ -34,6 +42,55 @@ public class MipsGenerator
 		// fileWriter.print("\tli $v0,10\n");
 		// fileWriter.print("\tsyscall\n");
 		fileWriter.close();
+	}
+
+	public void strLen(Temp dst, Temp str) {
+		int d = dst.getSerialNumber();
+		int s = str.getSerialNumber();
+		String labelStart = "strlen_start_" + dst.getSerialNumber();
+		String labelEnd = "strlen_end_" + dst.getSerialNumber();
+
+		// dst = 0; t1 = src;
+		fileWriter.format("\tli Temp_%d, 0\n", d);
+		fileWriter.format("\tmove $t1, Temp_%d\n", s);
+
+		// while (*t1 != 0)
+		fileWriter.format("%s:\n", labelStart);
+		fileWriter.format("\tlb $t0, 0($t1)\n");
+		fileWriter.format("\tbeq $t0, $zero, %s\n", labelEnd);
+
+		// dst++; t1++;
+		fileWriter.format("\taddi Temp_%d, Temp_%d, 1\n", d, d);
+		fileWriter.format("\taddi $t1, $t1, 1\n");
+		fileWriter.format("\tj %s\n", labelStart);
+		fileWriter.format("%s:\n", labelEnd);
+	}
+
+	// This also NULL terminates the string.
+	public void strCopy(Temp dst, Temp src) {
+		int d = dst.getSerialNumber();
+		int s = src.getSerialNumber();
+		String labelStart = "strcopy_start_" + d;
+		String labelEnd = "strcopy_end_" + d;
+
+		// t0 = s; t1 = d;
+		fileWriter.format("\tmove $t0, Temp_%d\n", s);
+		fileWriter.format("\tmove $t1, Temp_%d\n", d);
+
+		// while (t0 != 0)
+		fileWriter.format("%s:\n", labelStart);
+		fileWriter.format("\tlb $t2, 0($t0)\n");
+		fileWriter.format("\tbeq $t2, $zero, %s\n", labelEnd);
+		
+		// *(t1++) = *(t0++)
+		fileWriter.format("\tsb $t2, 0($t1)\n");
+		fileWriter.format("\taddi $t0, $t0, 1\n");
+		fileWriter.format("\taddi $t1, $t1, 1\n");
+		fileWriter.format("\tj %s\n", labelStart);
+		fileWriter.format("%s:\n", labelEnd);
+		
+		// Null Terminate (*t1 = 0)
+		fileWriter.format("\tsb $zero, 0($t1)\n");
 	}
 	
 	public void printInt(Temp t)
@@ -70,9 +127,6 @@ public class MipsGenerator
 		fileWriter.format("global_%s: .word 0\n", varName); 
 	}
 
-	public void dataSection() { fileWriter.format(".data\n"); }
-	public void textSection() { fileWriter.format(".text\n"); }
-
 	public void loadField(Temp dst, Temp objectBase, int offset) {
 		// MIPS: lw $dst, offset($base)
         fileWriter.format("\tlw Temp_%d, %d(Temp_%d)\n", dst.getSerialNumber(), offset, objectBase.getSerialNumber());
@@ -92,11 +146,15 @@ public class MipsGenerator
 	public void storeGlobal(String varName, Temp src)
 	{
 		int idxsrc=src.getSerialNumber();
-		fileWriter.format("\tsw Temp_%d,global_%s\n",idxsrc,varName);
+		fileWriter.format("\tsw Temp_%d, global_%s\n",idxsrc,varName);
 	}
 
 	public void storeLocal(Temp var, Temp val) {
 		fileWriter.format("\tsw Temp_%d, Temp_%d\n", val.getSerialNumber(), var.getSerialNumber());
+	}
+
+	public void moveLocal(Temp src, Temp dst) {
+		fileWriter.format("\tmove Temp_%d, Temp_%d\n", dst.getSerialNumber(), src.getSerialNumber());
 	}
 
 	/**
@@ -124,7 +182,7 @@ public class MipsGenerator
 	/**
 	 * Global error handlers printed once at the end of the file.
 	 */
-	public void printGlobalErrorHandlers() {
+	public void addGlobalErrorHandlers() {
 		// Handler for Nil
 		fileWriter.print("label_invalid_ptr_deref:\n");
 		fileWriter.print("\tla $a0, string_invalid_ptr_dref\n");
@@ -152,10 +210,12 @@ public class MipsGenerator
 		fileWriter.format("\tlw Temp_%d, 0($t1)\n", d);
 	}
 
-	public void dumpStringsToData() {
-		fileWriter.format("%s: .asciiz \"Access Violation\"\n", STRING_ACCESS_VIOLATION);
-		fileWriter.format("%s: .asciiz \"Illegal Division By Zero\"\n", STRING_DIV0);
-		fileWriter.format("%s: .asciiz \"Invalid Pointer Dereference\"\n", STRING_INV_PTR);
+	public void addStringLabel(String label, String value) {
+		fileWriter.format("%s: .asciiz %s\n", label, value); // Value should already contain "" or '' around the string.
+	}
+
+	public void loadAddress(Temp dst, String label) {
+		fileWriter.format("\tla Temp_%d, %s\n", dst.getSerialNumber(), label);
 	}
 
 	public void li(Temp t, int value)
@@ -201,22 +261,13 @@ public class MipsGenerator
 	{
 		if (inlabel.equals("_start")) {
 			fileWriter.format(".globl " + inlabel + "\n");
-			textSection();
 		}
 		fileWriter.format("\n%s:\n",inlabel);
-		if (inlabel.equals(".data")) {
-			dumpStringsToData();
-		}
-
-		// if (inlabel.equals("main"))
-		// {
-		// 	fileWriter.format(".text\n");
-		// 	fileWriter.format("%s:\n",inlabel);
-		// }
-		// else
-		// {
-		// 	fileWriter.format("%s:\n",inlabel);
-		// }
+	}
+	
+	public void segmentLabel(String segmentName)
+	{
+		fileWriter.format("\n.%s\n", segmentName);
 	}
 
 	/**
@@ -381,14 +432,6 @@ public class MipsGenerator
 			{
 				e.printStackTrace();
 			}
-
-			// /*****************************************************/
-			// /* [3] Print data section with error message strings */
-			// /*****************************************************/
-			// instance.fileWriter.print(".data\n");
-			// instance.fileWriter.print("string_access_violation: .asciiz \"Access Violation\"\n");
-			// instance.fileWriter.print("string_illegal_div_by_0: .asciiz \"Illegal Division By Zero\"\n");
-			// instance.fileWriter.print("string_invalid_ptr_dref: .asciiz \"Invalid Pointer Dereference\"\n");
 		}
 		return instance;
 	}

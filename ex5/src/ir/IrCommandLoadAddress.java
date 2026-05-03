@@ -13,19 +13,19 @@ package ir;
 import mips.*;
 import temp.*;
 
-public class IrCommandStoreLocal extends IrCommand
+public class IrCommandLoadAddress extends IrCommand
 {
-	public Temp var;
-	public Temp val;
+	public Temp dst;
+	public String label;
 	
-	public IrCommandStoreLocal(Temp var, Temp val)
+	public IrCommandLoadAddress(Temp dst, String label)
 	{
-		this.val	= val;
-		this.var	= var;
+		this.dst = dst;
+		this.label = label;
 	}
-
+	
 	public void mipsMe()
 	{
-		MipsGenerator.getInstance().storeLocal(this.var, this.val);
+		MipsGenerator.getInstance().loadAddress(this.dst, this.label);
 	}
 }

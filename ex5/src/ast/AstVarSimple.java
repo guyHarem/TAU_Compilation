@@ -81,7 +81,7 @@ public class AstVarSimple extends AstVar {
                 return t;
             case 3: // GLOBAL
                 t = TempFactory.getInstance().getFreshTemp();
-                Ir.getInstance().AddIrCommand(new IrCommandLoadGlobal(t, this.name));
+                Ir.getInstance().AddIrCommand(new IrCommandLoadGlobal(t, this.unique_name));
                 return t;
                 
             default:
@@ -93,7 +93,7 @@ public class AstVarSimple extends AstVar {
         Temp t;
         switch (this.caseType) {
             case 1: // LOCAL
-                Ir.getInstance().AddIrCommand(new IrCommandStoreLocal(this.localTemp, src));
+                Ir.getInstance().AddIrCommand(new IrCommandMove(this.localTemp, src));
             case 2: // FIELD
                 Ir.getInstance().AddIrCommand(new IrCommandStoreField(src, this.localTemp, this.fieldOffset));
             case 3: // GLOBAL

@@ -21,6 +21,12 @@ public abstract class IrCommand
 	{
 		return String.format("Label_%d_%s", labelCounter++,msg);
 	}
+
+	// Anonymous Label (for the case where msg is not a valid variable name).
+	public    static String getFreshAnonymousLabel()
+	{
+		return String.format("TempLabel_%d", labelCounter++);
+	}
 	
 	public abstract void mipsMe();
 }

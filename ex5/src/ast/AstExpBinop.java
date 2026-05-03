@@ -1,6 +1,7 @@
 package ast;
 
 import ir.*;
+import mips.MipsGenerator;
 import temp.*;
 import types.*;
 
@@ -9,6 +10,7 @@ public class AstExpBinop extends AstExp
 	int op;
 	public AstExp left;
 	public AstExp right;
+	private int opType; // 0 - int _op_ int. 1 - string _op_ string. 2 - class/object _op_ class/object (?).
 	
 	/******************/
 	/* CONSTRUCTOR(S) */
@@ -85,10 +87,12 @@ public class AstExpBinop extends AstExp
 			// + can be int+int or string+string
 			if ((t1 == TypeInt.getInstance()) && (t2 == TypeInt.getInstance()))
 			{
+				this.opType = 0;
 				return TypeInt.getInstance();
 			}
 			if ((t1 == TypeString.getInstance()) && (t2 == TypeString.getInstance()))
 			{
+				this.opType = 1;
 				return TypeString.getInstance();
 			}
 			throw new SemanticError(line, "plus operation requires int or string operands");
@@ -102,6 +106,7 @@ public class AstExpBinop extends AstExp
 						throw new SemanticError(line, "division by zero");
 					}
 				}
+				this.opType = 0;
 				return TypeInt.getInstance();
 			}
 			throw new SemanticError(line, "arithmetic operation requires int operands");
@@ -113,6 +118,7 @@ public class AstExpBinop extends AstExp
 		if (op == 4 || op == 5) {
 			if ((t1 == TypeInt.getInstance()) && (t2 == TypeInt.getInstance()))
 			{
+				this.opType = 0;
 				return TypeInt.getInstance();
 			}
 			throw new SemanticError(line, "comparison requires int operands");
@@ -123,6 +129,8 @@ public class AstExpBinop extends AstExp
 		/* For int, string, class, array          */
 		/******************************************/
 		if (op == 6) {
+			this.opType = 0; // Comparision always returns int.
+			
 			// int = int
 			if (t1 == TypeInt.getInstance() && t2 == TypeInt.getInstance()) {
 				return TypeInt.getInstance();
@@ -168,6 +176,7 @@ public class AstExpBinop extends AstExp
 	public Integer evaluateConstant()
 	{
 		if (left == null || right == null) return null;
+		if (this.opType != 0) return null; // For now only handle int operations (TODO).
 
 		Integer leftVal = left.evaluateConstant();
 		Integer rightVal = right.evaluateConstant();
@@ -194,6 +203,7 @@ public class AstExpBinop extends AstExp
         if (left  != null) t1 = left.irMe();
         if (right != null) t2 = right.irMe();
 
+		if (this.opType == 0 /* Int OP */) {
             // Map op IDs to corresponding IR commands
             switch (op) {
                 case 0:
@@ -225,9 +235,20 @@ public class AstExpBinop extends AstExp
                     Ir.getInstance().AddIrCommand(new IrCommandBinopEqIntegers(dst, t1, t2));
                     break;
                 default:
-                    throw new UnsupportedOperationException("irMe: BinOp IR not implemented for op ID: " + op);
+                    throw new UnsupportedOperationException("irMe: BinOp [Integer] IR not implemented for op ID: " + op);
             }
-
+		} else if (this.opType == 1 /* String Op */) {
+            switch (op) {
+                case 0: // Addition
+					Ir.getInstance().AddIrCommand(new IrCommandCall(dst, null, MipsGenerator.LABEL_STR_CONCAT, new Temp[]{t1, t2}));
+                    break;
+				// For now we don't support any other option.
+                case 6:
+                    throw new UnsupportedOperationException("irMe: BinOp [String] IR not implemented for op ID: " + op);
+                default:
+                    throw new UnsupportedOperationException("irMe: BinOp [String] IR not implemented for op ID: " + op);
+            }
+		} else throw new UnsupportedOperationException("irMe: BinOp [Object] IR not implemented for op ID: " + op);
         return dst;
     }
 }

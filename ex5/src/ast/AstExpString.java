@@ -1,5 +1,7 @@
 package ast;
 
+import ir.*;
+import temp.*;
 import types.*;
 
 public class AstExpString extends AstExp
@@ -41,5 +43,17 @@ public class AstExpString extends AstExp
 	public Type semantMe()
 	{
 		return TypeString.getInstance();
+	}
+
+	@Override
+	public Temp irMe() {
+		System.out.println("Debug: IR Gen for " + this.getClass().getSimpleName());
+		String label = IrCommand.getFreshAnonymousLabel();
+
+		// Add the string to the global data collection
+		Ir.getInstance().AddIrGlobalDecleration(new IrCommandStringLabel(label, this.value));
+		Temp dst = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IrCommandLoadAddress(dst, label));
+		return dst;
 	}
 }
