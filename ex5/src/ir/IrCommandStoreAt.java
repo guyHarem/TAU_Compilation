@@ -13,16 +13,16 @@ package ir;
 import mips.*;
 import temp.*;
 
-public class IrCommandMalloc extends IrCommand {
-    public Temp dst;
+public class IrCommandStoreAt extends IrCommand {
+    public Temp address;
     public Temp size;
 
-    public IrCommandMalloc(Temp dst, Temp size) {
-        this.dst = dst;
+    public IrCommandStoreAt(Temp address, Temp size) {
+        this.address = address;
         this.size = size;
     }
 
     public void mipsMe() {
-        MipsGenerator.getInstance().malloc(dst, size);
+        MipsGenerator.getInstance().storeAt(address, size);
     }
 }

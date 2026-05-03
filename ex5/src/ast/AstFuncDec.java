@@ -123,6 +123,13 @@ public class AstFuncDec extends AstDec {
 	public Temp irMe()
 	{
 		System.out.println("[DEBUG] AstFuncDec irMe: " + name);
+        if (SymbolTable.getInstance().getCurrentClass() != null) {
+            Temp thisTemp = temp.TempFactory.getInstance().getFreshTemp();
+            // Move the address from $a0 (passed by caller) to thisTemp.
+            mips.MipsGenerator.getInstance().moveFromReg("$a0", thisTemp);
+            SymbolTable.getInstance().currThis = thisTemp;
+		    System.out.println("[DEBUG] AstFuncDec Moved-To-This: " + thisTemp.toString());
+        }
         
 		// String labelEnd = IrCommand.getFreshLabel("end");
 		// Ir.getInstance().AddIrCommand(new IrCommandJumpLabel(labelEnd));

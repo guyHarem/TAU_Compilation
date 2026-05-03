@@ -16,6 +16,10 @@ public class MipsGenerator
 	/* The file writer ... */
 	/***********************/
 	private PrintWriter fileWriter;
+	
+	public static String STRING_ACCESS_VIOLATION	= "string_access_violation";
+	public static String STRING_DIV0				= "string_illegal_div_by_0";
+	public static String STRING_INV_PTR				= "string_invalid_ptr_dref";
 
 	private String tempToString(Temp t) {
 		return String.format("Temp_%s", t.getSerialNumber());
@@ -91,6 +95,69 @@ public class MipsGenerator
 		fileWriter.format("\tsw Temp_%d,global_%s\n",idxsrc,varName);
 	}
 
+	public void storeLocal(Temp var, Temp val) {
+		fileWriter.format("\tsw Temp_%d, Temp_%d\n", val.getSerialNumber(), var.getSerialNumber());
+	}
+
+	/**
+	 * Checks if a pointer is nil (0).
+	 * If it is, jumps to the global handler.
+	 */
+	public void nilCheck(Temp ptr) {
+		// If pointer == 0, jump to the handler
+		fileWriter.format("\tbeq Temp_%d, $zero, label_invalid_ptr_deref\n", ptr.getSerialNumber());
+	}
+
+	/**
+	 * Checks if index is within [0, length).
+	 */
+	public void arrayBoundsCheck(Temp base, Temp index) {
+		// 1. Check if index < 0
+		fileWriter.format("\tbltz Temp_%d, label_access_violation\n", index.getSerialNumber());
+		
+		// 2. Check if index >= length
+		// The length is stored at the first word (offset 0)
+		fileWriter.format("\tlw $t0, 0(Temp_%d)\n", base.getSerialNumber());
+		fileWriter.format("\tuge Temp_%d, $t0, label_access_violation\n", index.getSerialNumber());
+	}
+
+	/**
+	 * Global error handlers printed once at the end of the file.
+	 */
+	public void printGlobalErrorHandlers() {
+		// Handler for Nil
+		fileWriter.print("label_invalid_ptr_deref:\n");
+		fileWriter.print("\tla $a0, string_invalid_ptr_dref\n");
+		fileWriter.print("\tli $v0, 4\n\tsyscall\n");
+		fileWriter.print("\tli $v0, 10\n\tsyscall\n"); // Exit
+
+		// Handler for Bounds
+		fileWriter.print("label_access_violation:\n");
+		fileWriter.print("\tla $a0, string_access_violation\n");
+		fileWriter.print("\tli $v0, 4\n\tsyscall\n");
+		fileWriter.print("\tli $v0, 10\n\tsyscall\n"); // Exit
+	}
+
+	public void loadArray(Temp dst, Temp base, Temp index) {
+		int d = dst.getSerialNumber();
+		int b = base.getSerialNumber();
+		int i = index.getSerialNumber();
+
+		// Calculate offset: (index + 1) * 4 
+		// We add 1 because the length is at offset 0[cite: 1]
+		fileWriter.format("\tmove $t0, Temp_%d\n", i);
+		fileWriter.format("\taddi $t0, $t0, 1\n");
+		fileWriter.format("\tsll $t0, $t0, 2\n"); // multiply by 4
+		fileWriter.format("\tadd $t1, Temp_%d, $t0\n", b);
+		fileWriter.format("\tlw Temp_%d, 0($t1)\n", d);
+	}
+
+	public void dumpStringsToData() {
+		fileWriter.format("%s: .asciiz \"Access Violation\"\n", STRING_ACCESS_VIOLATION);
+		fileWriter.format("%s: .asciiz \"Illegal Division By Zero\"\n", STRING_DIV0);
+		fileWriter.format("%s: .asciiz \"Invalid Pointer Dereference\"\n", STRING_INV_PTR);
+	}
+
 	public void li(Temp t, int value)
 	{
 		int idx=t.getSerialNumber();
@@ -133,10 +200,13 @@ public class MipsGenerator
 	public void label(String inlabel)
 	{
 		if (inlabel.equals("_start")) {
-			fileWriter.format("\n.globl " + inlabel + "\n");
+			fileWriter.format(".globl " + inlabel + "\n");
 			textSection();
 		}
 		fileWriter.format("\n%s:\n",inlabel);
+		if (inlabel.equals(".data")) {
+			dumpStringsToData();
+		}
 
 		// if (inlabel.equals("main"))
 		// {
@@ -147,6 +217,34 @@ public class MipsGenerator
 		// {
 		// 	fileWriter.format("%s:\n",inlabel);
 		// }
+	}
+
+	/**
+	 * Mallocs memory for an array: (size + 1) * 4 bytes.
+	 * Resulting address is returned in 'dst'.
+	 */
+	public void malloc(Temp dst, Temp size) {
+		int d = dst.getSerialNumber();
+		int s = size.getSerialNumber();
+
+		// Calculate total bytes: (size + 1) << 2
+		fileWriter.format("\tmove $a0, Temp_%d\n", s);
+		fileWriter.format("\taddi $a0, $a0, 1\n");
+		fileWriter.format("\tsll $a0, $a0, 2\n");
+
+		// Allocate Heap Memory (sbrk)
+		fileWriter.format("\tli $v0, 9\n");
+		fileWriter.format("\tsyscall\n");
+
+		// Move result from $v0 to our destination temp
+		fileWriter.format("\tmove Temp_%d, $v0\n", d);
+	}
+
+	/**
+	 * Stores the value at base.
+	 */
+	public void storeAt(Temp base, Temp value) {
+		fileWriter.format("\tsw Temp_%d, 0(Temp_%d)\n", value.getSerialNumber(), base.getSerialNumber());
 	}
 
 	public void jump(String inlabel)
@@ -191,11 +289,6 @@ public class MipsGenerator
 		int i1 =oprnd1.getSerialNumber();
 				
 		fileWriter.format("\tbeq Temp_%d,$zero,%s\n",i1,label);				
-	}
-
-	// I think this needs to be here. I'm not completely sure - maybe it should be a library function?
-	public void malloc(Temp dst, int size) {
-		// Implement heap allocation for classes using syscall 9
 	}
 
 	public void allocateArray(Temp dst, Temp size) {
@@ -289,13 +382,13 @@ public class MipsGenerator
 				e.printStackTrace();
 			}
 
-			/*****************************************************/
-			/* [3] Print data section with error message strings */
-			/*****************************************************/
-			instance.fileWriter.print(".data\n");
-			instance.fileWriter.print("string_access_violation: .asciiz \"Access Violation\"\n");
-			instance.fileWriter.print("string_illegal_div_by_0: .asciiz \"Illegal Division By Zero\"\n");
-			instance.fileWriter.print("string_invalid_ptr_dref: .asciiz \"Invalid Pointer Dereference\"\n");
+			// /*****************************************************/
+			// /* [3] Print data section with error message strings */
+			// /*****************************************************/
+			// instance.fileWriter.print(".data\n");
+			// instance.fileWriter.print("string_access_violation: .asciiz \"Access Violation\"\n");
+			// instance.fileWriter.print("string_illegal_div_by_0: .asciiz \"Illegal Division By Zero\"\n");
+			// instance.fileWriter.print("string_invalid_ptr_dref: .asciiz \"Invalid Pointer Dereference\"\n");
 		}
 		return instance;
 	}

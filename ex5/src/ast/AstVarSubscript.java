@@ -1,5 +1,7 @@
 package ast;
 
+import ir.*;
+import temp.*;
 import types.*;
 
 public class AstVarSubscript extends AstVar {
@@ -46,5 +48,19 @@ public class AstVarSubscript extends AstVar {
 
         // Return the element type of the array
         return ((TypeArray) varType).elementType;
+    }
+
+    @Override
+    public Temp irMe() {
+        System.out.println("AstVarSubscript: Base type is " + var.getClass().getSimpleName());
+
+        Temp base = var.irMe();
+        Temp index = subscript.irMe();
+        Ir.getInstance().AddIrCommand(new IrCommandNilCheck(base));
+        Ir.getInstance().AddIrCommand(new IrCommandBoundsCheck(base, index));
+        
+        Temp result = TempFactory.getInstance().getFreshTemp();
+        Ir.getInstance().AddIrCommand(new IrCommandLoadArray(result, base, index));
+        return result;
     }
 }

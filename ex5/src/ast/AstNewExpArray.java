@@ -1,5 +1,7 @@
 package ast;
 
+import ir.*;
+import temp.*;
 import types.*;
 import symboltable.*;
 
@@ -57,5 +59,18 @@ public class AstNewExpArray extends AstNewExp {
         /* [3] Return a TypeArray for this        */
         /******************************************/
         return new TypeArray(type.name + "[]", elementType);
+    }
+
+    @Override
+    public Temp irMe() {
+        System.out.println("Debug: IR Gen for " + this.getClass().getSimpleName());
+        Temp size = exp.irMe();
+        // Allocate memory. We add 1 word to store the length at index 0
+        Temp address = TempFactory.getInstance().getFreshTemp();
+        Ir.getInstance().AddIrCommand(new IrCommandMalloc(address, size));
+        // Store the length at the start of the allocated block
+        Ir.getInstance().AddIrCommand(new IrCommandStoreAt(address, size));
+
+        return address;
     }
 }

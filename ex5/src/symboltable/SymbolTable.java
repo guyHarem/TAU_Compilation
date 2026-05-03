@@ -8,6 +8,7 @@ package symboltable;
 /*******************/
 import java.io.File;
 import java.io.PrintWriter;
+import temp.*;
 import types.*;
 
 /****************/
@@ -15,13 +16,14 @@ import types.*;
 /****************/
 public class SymbolTable
 {
+	public Temp currThis = null;
 	private int hashArraySize = 13;
 	
 	/**********************************************/
 	/* The actual symbol table data structure ... */
 	/**********************************************/
 	private SymbolTableEntry[] table = new SymbolTableEntry[hashArraySize];
-	private int currentScopeLevel = 0;
+	public int currentScopeLevel = 0;
 	private SymbolTableEntry top;
 	private int topIndex = 0;
 	

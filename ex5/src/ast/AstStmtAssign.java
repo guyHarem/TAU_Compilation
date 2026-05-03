@@ -1,6 +1,5 @@
 package ast;
 
-import ir.*;
 import temp.*;
 import types.*;
 
@@ -65,10 +64,8 @@ public class AstStmtAssign extends AstStmt {
         
         if (var instanceof AstVarSimple) {
             AstVarSimple astVarSimple = (AstVarSimple) var;
-            Ir.getInstance().AddIrCommand(new IrCommandStore(astVarSimple.unique_name, src));
-        } else {
-            var.irMe(); 
-        }
+            astVarSimple.doStore(src);
+        } else var.irMe();
         return null;
     }
 }

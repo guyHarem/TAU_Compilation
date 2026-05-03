@@ -8,9 +8,9 @@ import types.*;
 public class AstVarSimple extends AstVar {
     public String name;
     public String unique_name;
-    private int caseType; // 1: Local, 2: Field, 3: Global
+    public int caseType; // 1: Local, 2: Field, 3: Global
     private int fieldOffset; // Only for Case 2
-    private Temp localTemp; // Only for Case 1
+    public Temp localTemp; // Only for Case 1
 
     public AstVarSimple(String name, int lineNum) {
         serialNumber = AstNodeSerialNumber.getFresh();
@@ -39,7 +39,7 @@ public class AstVarSimple extends AstVar {
         if ((foundEntry = sym.findEntryExcludingGlobal(name)) != null) {
             foundType = foundEntry.type;
             this.caseType = 1;
-            this.localTemp = foundEntry.temp; 
+            this.localTemp = foundEntry.temp;
         }
 
         // 3. If not found, check class members (if applicable)
@@ -47,6 +47,8 @@ public class AstVarSimple extends AstVar {
             if ((foundType = currentClass.findMember(name)) != null) {
                 this.caseType = 2;
                 this.fieldOffset = currentClass.getFieldOffset(name);
+                this.unique_name = name + "@Field"; // There can't be class inside class so its ok.
+                return foundType;
             }
         }
 
@@ -62,17 +64,45 @@ public class AstVarSimple extends AstVar {
             throw new SemanticError(line, "undefined variable: " + name);
         }
 
-        if (foundEntry == null) foundEntry = sym.findEntry(name);
+        if (foundEntry == null) foundEntry = sym.findEntry(name); // Applies to both local and global scopes.
         this.unique_name = name + "@" + foundEntry.scopeLevel;
         return foundType;
     }
 
+    public Temp doLoad() {
+        Temp t;
+        switch (this.caseType) {
+            case 1: // LOCAL
+                return this.localTemp;
+            case 2: // FIELD
+                t = TempFactory.getInstance().getFreshTemp();
+                Temp thisPtr = SymbolTable.getInstance().currThis;
+                Ir.getInstance().AddIrCommand(new IrCommandLoadField(t, thisPtr, this.fieldOffset));
+                return t;
+            case 3: // GLOBAL
+                t = TempFactory.getInstance().getFreshTemp();
+                Ir.getInstance().AddIrCommand(new IrCommandLoadGlobal(t, this.name));
+                return t;
+                
+            default:
+                return null;
+        }
+    }
+
+    public void doStore(Temp src) {
+        Temp t;
+        switch (this.caseType) {
+            case 1: // LOCAL
+                Ir.getInstance().AddIrCommand(new IrCommandStoreLocal(this.localTemp, src));
+            case 2: // FIELD
+                Ir.getInstance().AddIrCommand(new IrCommandStoreField(src, this.localTemp, this.fieldOffset));
+            case 3: // GLOBAL
+                Ir.getInstance().AddIrCommand(new IrCommandStoreGlobal(this.unique_name, src));
+        }
+    }
+
     @Override
     public Temp irMe() {
-        if (this.isGlobal) {
-            Temp t = TempFactory.getInstance().getFreshTemp();
-            Ir.getInstance().AddIrCommand(new IrCommandLoad(t, unique_name));
-            return t;
-        } else return this.localTemp;
+        return doLoad();
     }
 }

@@ -1,85 +1,59 @@
-/***********/
-/* PACKAGE */
-/***********/
 package ir;
 
-/*******************/
-/* GENERAL IMPORTS */
-/*******************/
+import java.util.ArrayList;
+import java.util.List;
+import temp.*;
 
-/*******************/
-/* PROJECT IMPORTS */
-/*******************/
+public class Ir {
+    public List<IrCommand> globalDecls = new ArrayList<>();
+    public List<IrCommand> globalInits = new ArrayList<>();
+    public List<IrCommand> commands = new ArrayList<>();
 
-public class Ir
-{
-	private IrCommand head=null;
-	private IrCommandList tail=null;
+	public List<IrCommand> activeList = commands;
 
-	/******************/
-	/* Add Ir command */
-	/******************/
-	public void AddIrCommand(IrCommand cmd)
-	{
-		if ((head == null) && (tail == null))
-		{
-			this.head = cmd;
-		}
-		else if ((head != null) && (tail == null))
-		{
-			this.tail = new IrCommandList(cmd,null);
-		}
-		else
-		{
-			IrCommandList it = tail;
-			while ((it != null) && (it.tail != null))
-			{
-				it = it.tail;
-			}
-			it.tail = new IrCommandList(cmd,null);
-		}
-	}
+    private static Ir instance = null;
+    protected Ir() {}
 
-	/**************************************/
-	/* USUAL SINGLETON IMPLEMENTATION ... */
-	/**************************************/
-	private static Ir instance = null;
+    public static Ir getInstance() {
+        if (instance == null) instance = new Ir();
+        return instance;
+    }
 
-	/*****************************/
-	/* PREVENT INSTANTIATION ... */
-	/*****************************/
-	protected Ir() {}
+    public void AddIrGlobalDecleration(IrCommand cmd)  { globalDecls.add(cmd); }
+    public void AddIrGlobalInitialization(IrCommand cmd) { globalInits.add(cmd); }
+    public void AddIrCommand(IrCommand cmd)            { activeList.add(cmd); }
 
-	/******************************/
-	/* GET SINGLETON INSTANCE ... */
-	/******************************/
-	public static Ir getInstance()
-	{
-		if (instance == null)
-		{
-			/*******************************/
-			/* [0] The instance itself ... */
-			/*******************************/
-			instance = new Ir();
-		}
-		return instance;
-	}
-
-	/**
-     * Standard getter to allow the CFGBuilder to access the 
-     * start of the IR list without reflection.
+    /**
+     * Reconstructs the IR stream in the correct MIPS execution order.
      */
-    public IrCommand getHead() {
-        return head;
+    public void finalizeIr() {
+        List<IrCommand> masterList = new ArrayList<>();
+
+        // 1. Data Segment
+        masterList.add(new IrCommandLabel(".data"));
+        masterList.addAll(globalDecls);
+
+        // 2. Text Segment & Entry Point
+        masterList.add(new IrCommandLabel(".text"));
+        masterList.add(new IrCommandLabel("_start"));
+        
+        // 3. Global Initializations
+        masterList.addAll(globalInits);
+
+        // 4. Main Call & Exit
+        masterList.add(new IrCommandCall(null, null, "main", new Temp[]{}));
+        masterList.add(new IrCommandExit());
+
+        // 5. Everything else (functions, etc.)
+        masterList.addAll(commands);
+
+        // Replace the current command list with the finalized one
+        this.commands = masterList;
     }
 
-    public IrCommandList getTailList() {
-        return tail;
+    public void mipsMe() {
+        for (IrCommand cmd : commands) {
+            cmd.mipsMe();
+        }
     }
-	
-	public void mipsMe()
-	{
-		if (head != null) head.mipsMe();
-		if (tail != null) tail.mipsMe();
-	}
 }

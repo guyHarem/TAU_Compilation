@@ -1,6 +1,7 @@
 package ast;
 
 import symboltable.*;
+import temp.*;
 import types.*;
 
 public class AstArrayTypeDef extends AstDec {
@@ -55,5 +56,10 @@ public class AstArrayTypeDef extends AstDec {
         SymbolTable.getInstance().enter(name, arrayType);
 
         return arrayType;
+    }
+    
+    @Override
+    public Temp irMe() {
+        return null;
     }
 }

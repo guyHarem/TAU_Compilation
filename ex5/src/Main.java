@@ -59,6 +59,7 @@ public class Main
 			/* [8] Ir the AST ... */
 			/**********************/
 			ast.irMe();
+			Ir.getInstance().finalizeIr();
 
 			/***********************/
 			/* [9] MIPS the Ir ... */

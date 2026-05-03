@@ -53,10 +53,11 @@ public class AstCallExp extends AstExp {
             // Function call: funcName(args)
             // Same resolution logic as AstVarSimple: local -> class members -> global
             TypeClass currentClass = SymbolTable.getInstance().getCurrentClass();
-            Type t = null;
+            SymbolTableEntry entry = SymbolTable.getInstance().findEntryExcludingGlobal(funcName);
+            Type t;
 
             // First check local scopes (excluding global)
-            t = SymbolTable.getInstance().findExcludingGlobal(funcName);
+            t = (entry == null ? null : entry.type);
 
             // If not found locally and inside a class, check class members (including inherited)
             if (t == null && currentClass != null) {

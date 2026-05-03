@@ -1,6 +1,5 @@
 package ast;
 
-import ir.*;
 import temp.*;
 import types.*;
 
@@ -34,10 +33,10 @@ public class AstProgram extends AstNode {
 
     @Override
     public Temp irMe() {
-        // TODO: Initialize global vars.
-		Ir.getInstance().AddIrCommand(new IrCommandLabel("_start"));
-		Ir.getInstance().AddIrCommand(new IrCommandCall(null, null, "main", new Temp[]{}));
-		Ir.getInstance().AddIrCommand(new IrCommandExit());
+        // // TODO: Initialize global vars.
+		// // Ir.getInstance().AddIrCommand(new IrCommandLabel("_start"));
+		// Ir.getInstance().AddIrCommand(new IrCommandCall(null, null, "main", new Temp[]{}));
+		// Ir.getInstance().AddIrCommand(new IrCommandExit());
 
         if (decList != null) decList.irMe();
         return null;

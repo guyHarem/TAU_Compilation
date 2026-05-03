@@ -10,6 +10,8 @@ public class AstVarDec extends AstDec {
     public String name;
     public String unique_name;
     public AstExp exp;
+    private int caseType;
+    private Temp temp;
 
     public AstVarDec(AstType type, String name, AstExp exp, int lineNum) {
         serialNumber = AstNodeSerialNumber.getFresh();
@@ -30,6 +32,12 @@ public class AstVarDec extends AstDec {
 
     @Override
     public Type semantMe() {
+        SymbolTable sym = SymbolTable.getInstance();
+        if (sym.currentScopeLevel == 0) this.caseType = 3; // GLOBAL
+        // Level 1 inside a class means it's a field
+        else if (sym.getCurrentClass() != null && sym.currentScopeLevel == 1) this.caseType = 2; // FIELD
+        else this.caseType = 1; // LOCAL
+
         Type varType = SymbolTable.getInstance().find(type.name);
         if (varType == null) {
             throw new SemanticError(type.line, "undefined type: " + type.name);
@@ -54,6 +62,12 @@ public class AstVarDec extends AstDec {
 
         SymbolTableEntry entry = SymbolTable.getInstance().findEntry(name);
         this.unique_name = name + "@" + entry.scopeLevel;
+
+        // Assign a Temp only for local variables (non-global, non-field)
+        if (SymbolTable.getInstance().currentScopeLevel > 0) {
+            entry.temp = TempFactory.getInstance().getFreshTemp();
+            this.temp = entry.temp;
+        }
         return varType;
     }
 
@@ -73,9 +87,18 @@ public class AstVarDec extends AstDec {
 
     @Override
     public Temp irMe() {
-        Ir.getInstance().AddIrCommand(new IrCommandAllocate(unique_name));
-        if (exp != null) {
-            Ir.getInstance().AddIrCommand(new IrCommandStore(unique_name, exp.irMe()));
+        if (this.caseType == 3 /* global */) {
+            Ir.getInstance().AddIrGlobalDecleration(new IrCommandAllocate(unique_name));
+            if (exp != null) {
+                Ir.getInstance().activeList = Ir.getInstance().globalInits;
+                Ir.getInstance().AddIrCommand(new IrCommandStoreGlobal(unique_name, exp.irMe()));
+                Ir.getInstance().activeList = Ir.getInstance().commands;
+            }
+        } else {
+            // Ir.getInstance().AddIrCommand(new IrCommandAllocateLocal(unique_name));
+            if (exp != null) {
+                Ir.getInstance().AddIrCommand(new IrCommandStoreLocal(this.temp, exp.irMe()));
+            }
         }
         return null;
     }
