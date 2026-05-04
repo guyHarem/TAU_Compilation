@@ -23,7 +23,7 @@ public class MipsGenerator
 
 	public static String LABEL_ACCESS_VIOLATION	= "label_access_violation";
 	public static String LABEL_DIV0				= "label_illegal_div_by_0";
-	public static String LABEL_INV_PTR			= "label_invalid_ptr_dref";
+	public static String LABEL_INV_PTR			= "label_invalid_ptr_deref";
 	
 	public static String STRING_ACCESS_VIOLATION	= "string_access_violation";
 	public static String STRING_DIV0				= "string_illegal_div_by_0";
@@ -153,7 +153,7 @@ public class MipsGenerator
 		fileWriter.format("\tsw Temp_%d, Temp_%d\n", val.getSerialNumber(), var.getSerialNumber());
 	}
 
-	public void moveLocal(Temp src, Temp dst) {
+	public void moveLocal(Temp dst, Temp src) {
 		fileWriter.format("\tmove Temp_%d, Temp_%d\n", dst.getSerialNumber(), src.getSerialNumber());
 	}
 
@@ -163,51 +163,63 @@ public class MipsGenerator
 	 */
 	public void nilCheck(Temp ptr) {
 		// If pointer == 0, jump to the handler
-		fileWriter.format("\tbeq Temp_%d, $zero, label_invalid_ptr_deref\n", ptr.getSerialNumber());
+		fileWriter.format("\tbeq Temp_%d, $zero, %s\n", ptr.getSerialNumber(), MipsGenerator.LABEL_INV_PTR);
 	}
 
 	/**
 	 * Checks if index is within [0, length).
 	 */
 	public void arrayBoundsCheck(Temp base, Temp index) {
-		// 1. Check if index < 0
-		fileWriter.format("\tbltz Temp_%d, label_access_violation\n", index.getSerialNumber());
-		
-		// 2. Check if index >= length
-		// The length is stored at the first word (offset 0)
-		fileWriter.format("\tlw $t0, 0(Temp_%d)\n", base.getSerialNumber());
-		fileWriter.format("\tuge Temp_%d, $t0, label_access_violation\n", index.getSerialNumber());
+		int b = base.getSerialNumber();
+		int i = index.getSerialNumber();
+		fileWriter.format("\tbltz Temp_%d, label_access_violation\n", i);		// i < 0?
+		fileWriter.format("\tlw $t0, 0(Temp_%d)\n", b);							// i >= len? (*)
+		fileWriter.format("\tbge Temp_%d, $t0, label_access_violation\n", i);	// If (*), jump to error.
 	}
 
-	/**
-	 * Global error handlers printed once at the end of the file.
-	 */
-	public void addGlobalErrorHandlers() {
-		// Handler for Nil
-		fileWriter.print("label_invalid_ptr_deref:\n");
-		fileWriter.print("\tla $a0, string_invalid_ptr_dref\n");
-		fileWriter.print("\tli $v0, 4\n\tsyscall\n");
-		fileWriter.print("\tli $v0, 10\n\tsyscall\n"); // Exit
+	// /**
+	//  * Global error handlers printed once at the end of the file.
+	//  */
+	// public void addGlobalErrorHandlers() {
+	// 	// Handler for Nil
+	// 	fileWriter.format("%s:\n", MipsGenerator.LABEL_INV_PTR);
+	// 	fileWriter.print("\tla $a0, string_invalid_ptr_dref\n");
+	// 	fileWriter.print("\tli $v0, 4\n\tsyscall\n");
+	// 	fileWriter.print("\tli $v0, 10\n\tsyscall\n"); // Exit
 
-		// Handler for Bounds
-		fileWriter.print("label_access_violation:\n");
-		fileWriter.print("\tla $a0, string_access_violation\n");
-		fileWriter.print("\tli $v0, 4\n\tsyscall\n");
-		fileWriter.print("\tli $v0, 10\n\tsyscall\n"); // Exit
-	}
+	// 	// Handler for Bounds
+	// 	fileWriter.print("label_access_violation:\n");
+	// 	fileWriter.print("\tla $a0, string_access_violation\n");
+	// 	fileWriter.print("\tli $v0, 4\n\tsyscall\n");
+	// 	fileWriter.print("\tli $v0, 10\n\tsyscall\n"); // Exit
+	// }
 
 	public void loadArray(Temp dst, Temp base, Temp index) {
 		int d = dst.getSerialNumber();
 		int b = base.getSerialNumber();
 		int i = index.getSerialNumber();
 
-		// Calculate offset: (index + 1) * 4 
-		// We add 1 because the length is at offset 0[cite: 1]
+		// Calculate offset: (index + 1) 
+		// We add 1 because the length is at offset 0
 		fileWriter.format("\tmove $t0, Temp_%d\n", i);
 		fileWriter.format("\taddi $t0, $t0, 1\n");
-		fileWriter.format("\tsll $t0, $t0, 2\n"); // multiply by 4
+		// fileWriter.format("\tsll $t0, $t0, 2\n"); // multiply by 4
 		fileWriter.format("\tadd $t1, Temp_%d, $t0\n", b);
 		fileWriter.format("\tlw Temp_%d, 0($t1)\n", d);
+	}
+
+	public void storeArray(Temp base, Temp index, Temp src) {
+		int b = base.getSerialNumber();
+		int i = index.getSerialNumber();
+		int s = src.getSerialNumber();
+
+		// Calculate offset: (index + 1) 
+		// We add 1 because the length is at offset 0
+		fileWriter.format("\tmove $t0, Temp_%d\n", i);
+		fileWriter.format("\taddi $t0, $t0, 1\n");
+		// fileWriter.format("\tsll $t0, $t0, 2\n"); // multiply by 4
+		fileWriter.format("\tadd $t1, Temp_%d, $t0\n", b);
+		fileWriter.format("\tsw Temp_%d, 0($t1)\n", s);
 	}
 
 	public void addStringLabel(String label, String value) {
@@ -343,8 +355,22 @@ public class MipsGenerator
 	}
 
 	public void allocateArray(Temp dst, Temp size) {
-		// Implement array allocation (including length prefix)
-		// Should also generate code for the "size > 0" runtime check
+		int d = dst.getSerialNumber();
+		int s = size.getSerialNumber();
+
+		// Runtime Check: size must be > 0
+		fileWriter.format("\tmove $a0, Temp_%d\n", s);
+		fileWriter.format("\tblez $a0, %s\n", MipsGenerator.LABEL_ACCESS_VIOLATION);
+
+		// Allocate (size + 1) * 4 bytes [the +1 is added for storing the array's length].
+		fileWriter.format("\taddi $a0, $a0, 1\n");
+		fileWriter.format("\tsll $a0, $a0, 2\n");
+		fileWriter.format("\tli $v0, 9\n");
+		fileWriter.format("\tsyscall\n");
+
+		// Store the length at the start of the block and return the result.
+		fileWriter.format("\tsw Temp_%d, 0($v0)\n", s);
+		fileWriter.format("\tmove Temp_%d, $v0\n", d);
 	}
 
 	public void moveToReg(String targetReg, Temp src) {
@@ -352,9 +378,8 @@ public class MipsGenerator
 		fileWriter.format("\tmove %s, Temp_%d\n", targetReg, src.getSerialNumber());
 	}
 
-	public void moveFromReg(String srcReg, Temp src) {
-		// Moves value from a temporary to a physical register (e.g., $a0)
-		fileWriter.format("\tmove Temp_%d, %s\n", src.getSerialNumber(), srcReg);
+	public void moveFromReg(String srcReg, Temp dst) {
+		fileWriter.format("\tmove Temp_%d, %s\n", dst.getSerialNumber(), srcReg);
 	}
 
 	public void pushw(String s) {

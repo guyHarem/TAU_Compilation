@@ -50,8 +50,7 @@ public class AstVarSubscript extends AstVar {
         return ((TypeArray) varType).elementType;
     }
 
-    @Override
-    public Temp irMe() {
+    public Temp doLoad() {
         System.out.println("AstVarSubscript: Base type is " + var.getClass().getSimpleName());
 
         Temp base = var.irMe();
@@ -62,5 +61,20 @@ public class AstVarSubscript extends AstVar {
         Temp result = TempFactory.getInstance().getFreshTemp();
         Ir.getInstance().AddIrCommand(new IrCommandLoadArray(result, base, index));
         return result;
+    }
+
+    public void doStore(Temp src) {
+        System.out.println("AstVarSubscript: Base type is " + var.getClass().getSimpleName());
+
+        Temp base = var.irMe();
+        Temp index = subscript.irMe();
+        Ir.getInstance().AddIrCommand(new IrCommandNilCheck(base));
+        Ir.getInstance().AddIrCommand(new IrCommandBoundsCheck(base, index));
+        Ir.getInstance().AddIrCommand(new IrCommandStoreArray(base, index, src));
+    }
+
+    @Override
+    public Temp irMe() {
+        return this.doLoad();
     }
 }

@@ -10,20 +10,20 @@ package ir;
 /*******************/
 /* PROJECT IMPORTS */
 /*******************/
-import temp.*;
 import mips.*;
+import temp.*;
 
 public class IrCommandMove extends IrCommand {
-    public Temp src;
     public Temp dst;
+    public Temp src;
 
-    public IrCommandMove(Temp src, Temp dst) {
-        this.src = src;
+    public IrCommandMove(Temp dst, Temp src) {
         this.dst = dst;
+        this.src = src;
     }
 
     @Override
     public void mipsMe() {
-        MipsGenerator.getInstance().moveLocal(src, dst);
+        MipsGenerator.getInstance().moveLocal(dst, src);
     }
 }

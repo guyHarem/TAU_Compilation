@@ -54,7 +54,8 @@ public class Ir {
 
         // strCopy
         ir.AddIrCommand(new IrCommandLabel(MipsGenerator.LABEL_STRCOPY));
-        ir.AddIrCommand(new IrCommandMoveFromReg("$a0", arg1));
+        ir.AddIrCommand(new IrCommandMoveFromReg("$a0", dst));
+        ir.AddIrCommand(new IrCommandMoveFromReg("$a1", arg1));
         ir.AddIrCommand(new IrCommandStrCopy(dst, arg1));
         ir.AddIrCommand(new IrCommandReturn(dst));
     }
@@ -67,9 +68,8 @@ public class Ir {
         
         // 0. Setup dst, s1, s2.
         ir.AddIrCommand(new IrCommandLabel(MipsGenerator.LABEL_STR_CONCAT));
-        ir.AddIrCommand(new IrCommandMoveFromReg("$a0", dst));
-        ir.AddIrCommand(new IrCommandMoveFromReg("$a1", s1));
-        ir.AddIrCommand(new IrCommandMoveFromReg("$a2", s2));
+        ir.AddIrCommand(new IrCommandMoveFromReg("$a0", s1));
+        ir.AddIrCommand(new IrCommandMoveFromReg("$a1", s2));
 
         // 1. Calculate length of s1
         Temp len1 = tf.getFreshTemp();
@@ -90,7 +90,7 @@ public class Ir {
         
         // 4. Remap s1 to larger space.
         ir.AddIrCommand(new IrCommandMalloc(dst, totalSize));
-        Ir.getInstance().AddIrCommand(new IrCommandCall(dst, null, MipsGenerator.LABEL_STRCOPY, new Temp[]{s1}));
+        Ir.getInstance().AddIrCommand(new IrCommandCall(null, null, MipsGenerator.LABEL_STRCOPY, new Temp[]{dst, s1}));
 
         // 5. Copy s2 to dst + len1
         Temp dstPlusLen1 = tf.getFreshTemp();
@@ -105,6 +105,8 @@ public class Ir {
      * Reconstructs the IR stream in the correct MIPS execution order.
      */
     public void finalizeIr() {
+        finalizeStringUtilsCode();
+        finalizeStringConcatCode();
         finalizeErrorCode();
         List<IrCommand> masterList = new ArrayList<>();
 

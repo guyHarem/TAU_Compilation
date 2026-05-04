@@ -60,12 +60,16 @@ public class AstStmtAssign extends AstStmt {
 
     @Override
     public Temp irMe() {
-        Temp src = exp.irMe();      
-        
+        Temp src = exp.irMe();
         if (var instanceof AstVarSimple) {
-            AstVarSimple astVarSimple = (AstVarSimple) var;
-            astVarSimple.doStore(src);
-        } else var.irMe();
+            AstVarSimple symVar = (AstVarSimple)var;
+            symVar.doStore(src);
+        } else if (var instanceof AstVarSubscript) {
+            AstVarSubscript subVar = (AstVarSubscript) var;
+            subVar.doStore(src);
+        } else {
+            throw new UnsupportedOperationException("AstStmtAssign Var type not supported for now");
+        }
         return null;
     }
 }
