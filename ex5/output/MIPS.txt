@@ -178,17 +178,13 @@ label_str_concat:
 	lw $ra, 0($sp)
 	addu $sp, $sp, 4
 	add Temp_29,Temp_22,Temp_25
-	move $t0, Temp_24
-	move $t1, Temp_29
-strcopy_start_29:
-	lb $t2, 0($t0)
-	beq $t2, $zero, strcopy_end_29
-	sb $t2, 0($t1)
-	addi $t0, $t0, 1
-	addi $t1, $t1, 1
-	j strcopy_start_29
-strcopy_end_29:
-	sb $zero, 0($t1)
+	subu $sp, $sp, 4
+	sw $ra, 0($sp)
+	move $a0, Temp_29
+	move $a1, Temp_24
+	jal label_strcpy
+	lw $ra, 0($sp)
+	addu $sp, $sp, 4
 	move $v0, Temp_22
 	jr $ra
 

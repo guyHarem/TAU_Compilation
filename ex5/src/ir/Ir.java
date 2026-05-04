@@ -95,7 +95,7 @@ public class Ir {
         // 5. Copy s2 to dst + len1
         Temp dstPlusLen1 = tf.getFreshTemp();
         ir.AddIrCommand(new IrCommandBinopAddIntegers(dstPlusLen1, dst, len1));
-        ir.AddIrCommand(new IrCommandStrCopy(dstPlusLen1, s2));
+        Ir.getInstance().AddIrCommand(new IrCommandCall(null, null, MipsGenerator.LABEL_STRCOPY, new Temp[]{dstPlusLen1, s2}));
         
         // 6. return dst
         ir.AddIrCommand(new IrCommandReturn(dst));
