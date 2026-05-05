@@ -22,7 +22,11 @@ public class IrCommandMalloc extends IrCommand {
         this.size = size;
     }
 
-    public void mipsMe() {
-        MipsGenerator.getInstance().malloc(dst, size);
+    @Override public List<Temp> getUsedTemps() { return Arrays.asList(size); }
+    @Override public List<Temp> getDefTemps() { return Arrays.asList(dst); }
+    @Override public void mipsMe() {
+        String d = RegAlloc.getInstance().allocation.get(dst);
+        String s = RegAlloc.getInstance().allocation.get(size);
+        MipsGenerator.getInstance().malloc(d, s);
     }
 }

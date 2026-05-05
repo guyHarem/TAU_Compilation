@@ -27,8 +27,21 @@ public class IrCommandLoadField extends IrCommand
         this.fieldOffset = fieldOffset;
 	}
 	
-	public void mipsMe()
-	{
-		MipsGenerator.getInstance().loadField(this.dst, this.thisPtr, this.fieldOffset);
-	}
+	@Override
+    public List<Temp> getUsedTemps() {
+        return Arrays.asList(thisPtr);
+    }
+
+    @Override
+    public List<Temp> getDefTemps() {
+        return Arrays.asList(dst);
+    }
+
+    @Override
+    public void mipsMe()
+    {
+        String d = RegAlloc.getInstance().allocation.get(this.dst);
+        String p = RegAlloc.getInstance().allocation.get(this.thisPtr);
+        MipsGenerator.getInstance().loadField(d, p, this.fieldOffset);
+    }
 }

@@ -10,8 +10,10 @@ public class IrCommandNilCheck extends IrCommand {
         this.base = base;
     }
 
-    @Override
-    public void mipsMe() {
-        MipsGenerator.getInstance().nilCheck(base);
+    @Override public List<Temp> getUsedTemps() { return Arrays.asList(base); }
+    @Override public List<Temp> getDefTemps() { return Collections.emptyList(); }
+    @Override public void mipsMe() {
+        String b = RegAlloc.getInstance().allocation.get(base);
+        MipsGenerator.getInstance().nilCheck(b);
     }
 }

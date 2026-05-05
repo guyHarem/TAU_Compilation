@@ -19,8 +19,7 @@ public class IrCommandSegmentLabel extends IrCommand {
         this.segmentName = segmentName;
     }
 
-    @Override
-    public void mipsMe() {
-        MipsGenerator.getInstance().segmentLabel(segmentName);
-    }
+    @Override public List<Temp> getUsedTemps() { return Collections.emptyList(); }
+    @Override public List<Temp> getDefTemps() { return Collections.emptyList(); }
+    @Override public void mipsMe() { MipsGenerator.getInstance().segmentLabel(segmentName); }
 }

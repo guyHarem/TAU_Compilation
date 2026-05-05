@@ -12,8 +12,19 @@ public class IrCommandAllocateArray extends IrCommand {
     }
 
     @Override
+    public List<Temp> getUsedTemps() {
+        return Arrays.asList(size);
+    }
+
+    @Override
+    public List<Temp> getDefTemps() {
+        return Arrays.asList(dst);
+    }
+
+    @Override
     public void mipsMe() {
-        // MipsGenerator should handle size check (>0) and (size+1)*4 allocation
-        MipsGenerator.getInstance().allocateArray(dst, size);
+        String d = RegAlloc.getInstance().allocation.get(dst);
+        String s = RegAlloc.getInstance().allocation.get(size);
+        MipsGenerator.getInstance().allocateArray(d, s);
     }
 }

@@ -16,30 +16,38 @@ public class IrCommandCall extends IrCommand {
         this.args = args;
     }
 
+    private Temp[] insert(Temp val, Temp[] array) {
+        Temp[] result = array;
+        result = new Temp[array.length + 1];
+        result[0] = val;
+        System.arraycopy(array, 0, result, 1, array.length);
+    }
+
     @Override
     public void mipsMe() {
+        RegAlloc ra = RegAlloc.getInstance();
+
+        List<String> regsToSave = ra.getLiveRegsForCall(this);
+        for (String reg : regsToSave) MipsGenerator.getInstance().pushReg(reg);
         MipsGenerator.getInstance().pushReg("$ra");
+
+        Temp[] finalArgs = (receiver != null) ? insert(receiver, args) : args;
         for (int i = 0; i < args.length; i++) {
-            if (i < 4) {
-                // Use $a0 - $a3
-                MipsGenerator.getInstance().moveToReg(String.format("$a%d", i), args[i]);
-            } else {
-                // Push remaining args to stack
-                MipsGenerator.getInstance().pushTemp(args[i]);
-            }
+            String physReg = ra.allocation.get(finalArgs[i]);
+            if (i < 4) MipsGenerator.getInstance().moveToReg(String.format("$a%d", i), physReg); // Use $a0 - $a3
+            else MipsGenerator.getInstance().pushReg(physReg); // Push remaining args to stack
         }
-
-        // TODO: If it's a method call, ensure the receiver is in $a0 or handled
-        // (This depends on your specific class/method implementation)
-
-        // Jump and Link to the function label (TODO: Handle method call).
         MipsGenerator.getInstance().jal(label);
 
         // Move the result from $v0 to our destination temporary
-        // Table 1 shows that return values/results typically reside in $v0 
         if (dst != null) {
-            MipsGenerator.getInstance().moveFromReg("$v0", dst);
+            String destPhysReg = ra.allocation.get(dst);
+            MipsGenerator.getInstance().moveFromReg("$v0", destPhysReg);
         }
+        
         MipsGenerator.getInstance().popReg("$ra");
+        for (int i = regsToSave.size() - 1; i >= 0; i--) {
+            MipsGenerator.getInstance().popReg(regsToSave.get(i));
+        }
     }
 }

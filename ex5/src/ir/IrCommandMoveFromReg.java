@@ -12,8 +12,10 @@ public class IrCommandMoveFromReg extends IrCommand {
         this.dst = dst;
     }
 
-    @Override
-    public void mipsMe() {
-        MipsGenerator.getInstance().moveFromReg(this.reg, this.dst);
+    @Override public List<Temp> getUsedTemps() { return Collections.emptyList(); }
+    @Override public List<Temp> getDefTemps() { return Arrays.asList(dst); }
+    @Override public void mipsMe() {
+        String d = RegAlloc.getInstance().allocation.get(dst);
+        MipsGenerator.getInstance().moveFromReg(this.reg, d);
     }
 }

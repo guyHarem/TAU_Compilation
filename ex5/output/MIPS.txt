@@ -3,25 +3,11 @@
 string_access_violation: .asciiz "Access Violation"
 string_illegal_div_by_0: .asciiz "Illegal Division By Zero"
 string_invalid_ptr_dref: .asciiz "Invalid Pointer Dereference"
-global_s1@0: .word 0
-TempLabel_0: .asciiz "Having"
-global_s2@0: .word 0
-TempLabel_1: .asciiz "said"
-global_s3@0: .word 0
-TempLabel_2: .asciiz "that"
-TempLabel_3: .asciiz "Citroen"
-TempLabel_4: .asciiz "said"
 
 .text
 .globl _start
 
 _start:
-	la Temp_1, TempLabel_0
-	sw Temp_1, global_s1@0
-	la Temp_2, TempLabel_1
-	sw Temp_2, global_s2@0
-	la Temp_3, TempLabel_2
-	sw Temp_3, global_s3@0
 	subu $sp, $sp, 4
 	sw $ra, 0($sp)
 	jal main
@@ -30,175 +16,227 @@ _start:
 	li $v0, 10
 	syscall
 
-main:
-	li Temp_4,3
-	move $a0, Temp_4
-	li $v0, 9
-	syscall
-	move Temp_5, $v0
-	sw Temp_4, 0(Temp_5)
-	move Temp_0, Temp_5
-	lw Temp_6,global_s1@0
-	li Temp_7,0
-	beq Temp_0, $zero, label_invalid_ptr_deref
-	bltz Temp_7, label_access_violation
-	lw $t0, 0(Temp_0)
-	bge Temp_7, $t0, label_access_violation
-	move $t0, Temp_7
-	addi $t0, $t0, 1
-	sll $t0, $t0, 2
-	add $t1, Temp_0, $t0
-	sw Temp_6, 0($t1)
-	la Temp_9, TempLabel_3
-	lw Temp_10,global_s2@0
-	subu $sp, $sp, 4
-	sw $ra, 0($sp)
-	move $a0, Temp_9
-	move $a1, Temp_10
-	jal label_str_concat
-	move Temp_8, $v0
-	lw $ra, 0($sp)
-	addu $sp, $sp, 4
+IsPrime:
+	li Temp_6,2
+	move Temp_1, Temp_6
+	li Temp_7,2
+	move Temp_2, Temp_7
+
+Label_1_start:
+	blt Temp_1,Temp_0,Label_9_AssignOne
+	bge Temp_1,Temp_0,Label_10_AssignZero
+
+Label_9_AssignOne:
+	li Temp_8,1
+	j Label_8_end
+
+Label_10_AssignZero:
+	li Temp_8,0
+	j Label_8_end
+
+Label_8_end:
+	beq Temp_8,$zero,Label_0_end
+	li Temp_9,2
+	move Temp_2, Temp_9
+	sw Temp_9, 0(Temp_2)
+	sw Temp_9, global_j@1
+
+Label_3_start:
+	blt Temp_2,Temp_0,Label_12_AssignOne
+	bge Temp_2,Temp_0,Label_13_AssignZero
+
+Label_12_AssignOne:
+	li Temp_10,1
+	j Label_11_end
+
+Label_13_AssignZero:
+	li Temp_10,0
+	j Label_11_end
+
+Label_11_end:
+	beq Temp_10,$zero,Label_2_end
+	mul Temp_12,Temp_1,Temp_2
+	beq Temp_12,Temp_0,Label_15_AssignOne
+	bne Temp_12,Temp_0,Label_16_AssignZero
+
+Label_15_AssignOne:
 	li Temp_11,1
-	beq Temp_0, $zero, label_invalid_ptr_deref
-	bltz Temp_11, label_access_violation
-	lw $t0, 0(Temp_0)
-	bge Temp_11, $t0, label_access_violation
-	move $t0, Temp_11
-	addi $t0, $t0, 1
-	sll $t0, $t0, 2
-	add $t1, Temp_0, $t0
-	sw Temp_8, 0($t1)
-	lw Temp_14,global_s1@0
-	la Temp_15, TempLabel_4
+	j Label_14_end
+
+Label_16_AssignZero:
+	li Temp_11,0
+	j Label_14_end
+
+Label_14_end:
+	beq Temp_11,$zero,Label_4_end
+	li Temp_13,0
+	move $v0, Temp_13
+	jr $ra
+
+Label_4_end:
+	li Temp_15,1
+	add Temp_14,Temp_2,Temp_15
+	move Temp_2, Temp_14
+	sw Temp_14, 0(Temp_2)
+	sw Temp_14, global_j@1
+	j Label_3_start
+
+Label_2_end:
+	li Temp_17,1
+	add Temp_16,Temp_1,Temp_17
+	move Temp_1, Temp_16
+	sw Temp_16, 0(Temp_1)
+	sw Temp_16, global_i@1
+	j Label_1_start
+
+Label_0_end:
+	li Temp_18,1
+	move $v0, Temp_18
+	jr $ra
+
+PrintPrimes:
+	move Temp_5, Temp_3
+
+Label_6_start:
+	li Temp_21,1
+	add Temp_20,Temp_4,Temp_21
+	blt Temp_5,Temp_20,Label_18_AssignOne
+	bge Temp_5,Temp_20,Label_19_AssignZero
+
+Label_18_AssignOne:
+	li Temp_19,1
+	j Label_17_end
+
+Label_19_AssignZero:
+	li Temp_19,0
+	j Label_17_end
+
+Label_17_end:
+	beq Temp_19,$zero,Label_5_end
 	subu $sp, $sp, 4
 	sw $ra, 0($sp)
-	move $a0, Temp_14
-	move $a1, Temp_15
-	jal label_str_concat
-	move Temp_13, $v0
+	move $a0, Temp_5
+	jal IsPrime
+	move Temp_22, $v0
 	lw $ra, 0($sp)
 	addu $sp, $sp, 4
-	lw Temp_16,global_s3@0
-	subu $sp, $sp, 4
-	sw $ra, 0($sp)
-	move $a0, Temp_13
-	move $a1, Temp_16
-	jal label_str_concat
-	move Temp_12, $v0
-	lw $ra, 0($sp)
-	addu $sp, $sp, 4
-	li Temp_17,2
-	beq Temp_0, $zero, label_invalid_ptr_deref
-	bltz Temp_17, label_access_violation
-	lw $t0, 0(Temp_0)
-	bge Temp_17, $t0, label_access_violation
-	move $t0, Temp_17
-	addi $t0, $t0, 1
-	sll $t0, $t0, 2
-	add $t1, Temp_0, $t0
-	sw Temp_12, 0($t1)
-	li Temp_18,2
-	beq Temp_0, $zero, label_invalid_ptr_deref
-	bltz Temp_18, label_access_violation
-	lw $t0, 0(Temp_0)
-	bge Temp_18, $t0, label_access_violation
-	move $t0, Temp_18
-	addi $t0, $t0, 1
-	sll $t0, $t0, 2
-	add $t1, Temp_0, $t0
-	lw Temp_19, 0($t1)
-	move $a0, Temp_19
-	li $v0, 4
+	beq Temp_22,$zero,Label_7_end
+	move $a0,Temp_5
+	li $v0,1
 	syscall
+	li $a0,32
+	li $v0,11
+	syscall
+
+Label_7_end:
+	li Temp_24,1
+	add Temp_23,Temp_5,Temp_24
+	move Temp_5, Temp_23
+	sw Temp_23, 0(Temp_5)
+	sw Temp_23, global_p@1
+	j Label_6_start
+
+Label_5_end:
+	jr $ra
+
+main:
+	li Temp_25,2
+	li Temp_26,100
+	subu $sp, $sp, 4
+	sw $ra, 0($sp)
+	move $a0, Temp_25
+	move $a1, Temp_26
+	jal PrintPrimes
+	lw $ra, 0($sp)
+	addu $sp, $sp, 4
 	jr $ra
 
 label_strlen:
-	move Temp_21, $a0
-	li Temp_20, 0
-	move $t1, Temp_21
-strlen_start_20:
+	move Temp_28, $a0
+	li Temp_27, 0
+	move $t1, Temp_28
+strlen_start_27:
 	lb $t0, 0($t1)
-	beq $t0, $zero, strlen_end_20
-	addi Temp_20, Temp_20, 1
+	beq $t0, $zero, strlen_end_27
+	addi Temp_27, Temp_27, 1
 	addi $t1, $t1, 1
-	j strlen_start_20
-strlen_end_20:
-	move $v0, Temp_20
+	j strlen_start_27
+strlen_end_27:
+	move $v0, Temp_27
 	jr $ra
 
 label_strcpy:
-	move Temp_20, $a0
-	move Temp_21, $a1
-	move $t0, Temp_21
-	move $t1, Temp_20
-strcopy_start_20:
+	move Temp_27, $a0
+	move Temp_28, $a1
+	move $t0, Temp_28
+	move $t1, Temp_27
+strcopy_start_27:
 	lb $t2, 0($t0)
-	beq $t2, $zero, strcopy_end_20
+	beq $t2, $zero, strcopy_end_27
 	sb $t2, 0($t1)
 	addi $t0, $t0, 1
 	addi $t1, $t1, 1
-	j strcopy_start_20
-strcopy_end_20:
+	j strcopy_start_27
+strcopy_end_27:
 	sb $zero, 0($t1)
-	move $v0, Temp_20
+	move $v0, Temp_27
 	jr $ra
 
 label_str_concat:
-	move Temp_23, $a0
-	move Temp_24, $a1
-	li Temp_25,0
+	move Temp_30, $a0
+	move Temp_31, $a1
+	li Temp_32,0
 	subu $sp, $sp, 4
 	sw $ra, 0($sp)
-	move $a0, Temp_23
+	move $a0, Temp_30
 	jal label_strlen
-	move Temp_25, $v0
+	move Temp_32, $v0
 	lw $ra, 0($sp)
 	addu $sp, $sp, 4
-	li Temp_26,0
+	li Temp_33,0
 	subu $sp, $sp, 4
 	sw $ra, 0($sp)
-	move $a0, Temp_24
+	move $a0, Temp_31
 	jal label_strlen
-	move Temp_26, $v0
+	move Temp_33, $v0
 	lw $ra, 0($sp)
 	addu $sp, $sp, 4
-	li Temp_28,1
-	add Temp_27,Temp_25,Temp_26
-	add Temp_27,Temp_27,Temp_28
-	move $a0, Temp_27
+	li Temp_35,1
+	add Temp_34,Temp_32,Temp_33
+	add Temp_34,Temp_34,Temp_35
+	move $a0, Temp_34
 	li $v0, 9
 	syscall
-	move Temp_22, $v0
-	subu $sp, $sp, 4
-	sw $ra, 0($sp)
-	move $a0, Temp_22
-	move $a1, Temp_23
-	jal label_strcpy
-	lw $ra, 0($sp)
-	addu $sp, $sp, 4
-	add Temp_29,Temp_22,Temp_25
+	move Temp_29, $v0
 	subu $sp, $sp, 4
 	sw $ra, 0($sp)
 	move $a0, Temp_29
-	move $a1, Temp_24
+	move $a1, Temp_30
 	jal label_strcpy
 	lw $ra, 0($sp)
 	addu $sp, $sp, 4
-	move $v0, Temp_22
+	add Temp_36,Temp_29,Temp_32
+	subu $sp, $sp, 4
+	sw $ra, 0($sp)
+	move $a0, Temp_36
+	move $a1, Temp_31
+	jal label_strcpy
+	lw $ra, 0($sp)
+	addu $sp, $sp, 4
+	move $v0, Temp_29
 	jr $ra
 
 label_invalid_ptr_deref:
-	la Temp_30, string_invalid_ptr_dref
-	move $a0, Temp_30
+	la Temp_37, string_invalid_ptr_dref
+	move $a0, Temp_37
 	li $v0, 4
 	syscall
 	li $v0, 10
 	syscall
 
 label_access_violation:
-	la Temp_31, string_access_violation
-	move $a0, Temp_31
+	la Temp_38, string_access_violation
+	move $a0, Temp_38
 	li $v0, 4
 	syscall
 	li $v0, 10

@@ -11,9 +11,21 @@ public class IrCommandBoundsCheck extends IrCommand {
         this.base = base;
         this.index = index;
     }
+    
+    @Override
+    public List<Temp> getUsedTemps() {
+        return Arrays.asList(base, index);
+    }
+
+    @Override
+    public List<Temp> getDefTemps() {
+        return Collections.emptyList();
+    }
 
     @Override
     public void mipsMe() {
-        MipsGenerator.getInstance().arrayBoundsCheck(base, index);
+        String b = RegAlloc.getInstance().allocation.get(base);
+        String i = RegAlloc.getInstance().allocation.get(index);
+        MipsGenerator.getInstance().arrayBoundsCheck(b, i);
     }
 }

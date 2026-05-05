@@ -24,8 +24,10 @@ public class IrCommandStoreGlobal extends IrCommand
 		this.varName = varName;
 	}
 
-	public void mipsMe()
-	{
-		MipsGenerator.getInstance().storeGlobal(varName,src);
-	}
+	@Override public List<Temp> getUsedTemps() { return Arrays.asList(src); }
+    @Override public List<Temp> getDefTemps() { return Collections.emptyList(); }
+    @Override public void mipsMe() {
+        String s = RegAlloc.getInstance().allocation.get(src);
+        MipsGenerator.getInstance().storeGlobal(varName, s);
+    }
 }

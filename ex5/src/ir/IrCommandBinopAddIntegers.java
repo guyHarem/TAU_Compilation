@@ -16,10 +16,11 @@ import temp.*;
 public class IrCommandBinopAddIntegers extends IrCommandBinop
 {
 	public IrCommandBinopAddIntegers(Temp dst, Temp t1, Temp t2) { super(dst, t1, t2); }
-	
-	
 	public void mipsMe()
 	{
-		MipsGenerator.getInstance().add(dst,t1,t2);
+		String d = RegAlloc.getInstance().allocation.get(dst);
+        String s1 = RegAlloc.getInstance().allocation.get(t1);
+        String s2 = RegAlloc.getInstance().allocation.get(t2);
+        MipsGenerator.getInstance().add(d, s1, s2);
 	}
 }

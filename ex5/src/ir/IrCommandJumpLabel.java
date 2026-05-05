@@ -21,8 +21,19 @@ public class IrCommandJumpLabel extends IrCommand
 		this.labelName = labelName;
 	}
 	
-	public void mipsMe()
-	{
-		MipsGenerator.getInstance().jump(labelName);
-	}
+	@Override
+    public List<Temp> getUsedTemps() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Temp> getDefTemps() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void mipsMe()
+    {
+        MipsGenerator.getInstance().jump(labelName);
+    }
 }

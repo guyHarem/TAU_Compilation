@@ -22,8 +22,11 @@ public class IrCommandMove extends IrCommand {
         this.src = src;
     }
 
-    @Override
-    public void mipsMe() {
-        MipsGenerator.getInstance().moveLocal(dst, src);
+    @Override public List<Temp> getUsedTemps() { return Arrays.asList(src); }
+    @Override public List<Temp> getDefTemps() { return Arrays.asList(dst); }
+    @Override public void mipsMe() {
+        String d = RegAlloc.getInstance().allocation.get(dst);
+        String s = RegAlloc.getInstance().allocation.get(src);
+        MipsGenerator.getInstance().moveLocal(d, s);
     }
 }

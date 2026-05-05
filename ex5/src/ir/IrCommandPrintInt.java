@@ -22,9 +22,11 @@ public class IrCommandPrintInt extends IrCommand
 		this.t = t;
 	}
 	
-	public void mipsMe()
-	{
-		MipsGenerator.getInstance().printInt(t);
-	}
+	@Override public List<Temp> getUsedTemps() { return Arrays.asList(t); }
+    @Override public List<Temp> getDefTemps() { return Collections.emptyList(); }
+    @Override public void mipsMe() {
+        String r = RegAlloc.getInstance().allocation.get(t);
+        MipsGenerator.getInstance().printInt(r);
+    }
 }
 

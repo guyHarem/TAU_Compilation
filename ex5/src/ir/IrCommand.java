@@ -29,4 +29,6 @@ public abstract class IrCommand
 	}
 	
 	public abstract void mipsMe();
+	public abstract List<Temp> getUsedTemps();
+    public abstract List<Temp> getDefTemps();
 }

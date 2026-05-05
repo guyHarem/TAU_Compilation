@@ -15,7 +15,20 @@ public class IrCommandLoadArray extends IrCommand {
     }
 
     @Override
+    public List<Temp> getUsedTemps() {
+        return Arrays.asList(base, index);
+    }
+
+    @Override
+    public List<Temp> getDefTemps() {
+        return Arrays.asList(dst);
+    }
+
+    @Override
     public void mipsMe() {
-        MipsGenerator.getInstance().loadArray(dst, base, index);
+        String d = RegAlloc.getInstance().allocation.get(dst);
+        String b = RegAlloc.getInstance().allocation.get(base);
+        String i = RegAlloc.getInstance().allocation.get(index);
+        MipsGenerator.getInstance().loadArray(d, b, i);
     }
 }

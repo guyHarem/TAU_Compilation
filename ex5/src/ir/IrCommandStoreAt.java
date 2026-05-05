@@ -22,7 +22,11 @@ public class IrCommandStoreAt extends IrCommand {
         this.size = size;
     }
 
-    public void mipsMe() {
-        MipsGenerator.getInstance().storeAt(address, size);
+    @Override public List<Temp> getUsedTemps() { return Arrays.asList(address, value); }
+    @Override public List<Temp> getDefTemps() { return Collections.emptyList(); }
+    @Override public void mipsMe() {
+        String a = RegAlloc.getInstance().allocation.get(address);
+        String v = RegAlloc.getInstance().allocation.get(value);
+        MipsGenerator.getInstance().storeAt(a, v);
     }
 }

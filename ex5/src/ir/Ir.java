@@ -136,6 +136,7 @@ public class Ir {
     }
 
     public void mipsMe() {
+        RegAlloc.setInstance(commands);
         for (IrCommand cmd : commands) {
             cmd.mipsMe();
         }

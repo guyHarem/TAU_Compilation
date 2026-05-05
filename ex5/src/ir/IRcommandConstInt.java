@@ -24,8 +24,20 @@ public class IrCommandConstInt extends IrCommand
 		this.value = value;
 	}
 	
-	public void mipsMe()
-	{
-		MipsGenerator.getInstance().li(dst, value);
-	}
+	@Override
+    public List<Temp> getUsedTemps() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Temp> getDefTemps() {
+        return Arrays.asList(dst);
+    }
+
+    @Override
+    public void mipsMe()
+    {
+        String d = RegAlloc.getInstance().allocation.get(dst);
+        MipsGenerator.getInstance().li(d, value);
+    }
 }

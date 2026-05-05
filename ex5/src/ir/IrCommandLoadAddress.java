@@ -24,8 +24,20 @@ public class IrCommandLoadAddress extends IrCommand
 		this.label = label;
 	}
 	
-	public void mipsMe()
-	{
-		MipsGenerator.getInstance().loadAddress(this.dst, this.label);
-	}
+	@Override
+    public List<Temp> getUsedTemps() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Temp> getDefTemps() {
+        return Arrays.asList(dst);
+    }
+
+    @Override
+    public void mipsMe()
+    {
+        String d = RegAlloc.getInstance().allocation.get(this.dst);
+        MipsGenerator.getInstance().loadAddress(d, this.label);
+    }
 }

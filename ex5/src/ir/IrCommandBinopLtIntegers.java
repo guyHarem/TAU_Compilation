@@ -17,47 +17,28 @@ public class IrCommandBinopLtIntegers extends IrCommandBinop
 {
 	public IrCommandBinopLtIntegers(Temp dst, Temp t1, Temp t2) { super(dst, t1, t2); }
 	
+	@Override
 	public void mipsMe()
-	{
-		/*******************************/
-		/* [1] Allocate 2 fresh labels */
-		/*******************************/
-		String labelEnd        = getFreshLabel("end");
-		String labelAssignOne  = getFreshLabel("AssignOne");
-		String labelAssignZero = getFreshLabel("AssignZero");
-		
-		/******************************************/
-		/* [2] if (t1< t2) goto labelAssignOne;  */
-		/*     if (t1>=t2) goto labelAssignZero; */
-		/******************************************/
-		MipsGenerator.getInstance().blt(t1,t2,labelAssignOne);
-		MipsGenerator.getInstance().bge(t1,t2,labelAssignZero);
+    {
+        String d = RegAlloc.getInstance().allocation.get(dst);
+        String s1 = RegAlloc.getInstance().allocation.get(t1);
+        String s2 = RegAlloc.getInstance().allocation.get(t2);
 
-		/************************/
-		/* [3] labelAssignOne: */
-		/*                      */
-		/*         t3 := 1      */
-		/*         goto end;    */
-		/*                      */
-		/************************/
-		MipsGenerator.getInstance().label(labelAssignOne);
-		MipsGenerator.getInstance().li(dst,1);
-		MipsGenerator.getInstance().jump(labelEnd);
+        String labelEnd        = getFreshLabel("end");
+        String labelAssignOne  = getFreshLabel("AssignOne");
+        String labelAssignZero = getFreshLabel("AssignZero");
+        
+        MipsGenerator.getInstance().blt(s1, s2, labelAssignOne);
+        MipsGenerator.getInstance().bge(s1, s2, labelAssignZero);
 
-		/*************************/
-		/* [4] labelAssignZero: */
-		/*                       */
-		/*         t3 := 1       */
-		/*         goto end;     */
-		/*                       */
-		/*************************/
-		MipsGenerator.getInstance().label(labelAssignZero);
-		MipsGenerator.getInstance().li(dst,0);
-		MipsGenerator.getInstance().jump(labelEnd);
+        MipsGenerator.getInstance().label(labelAssignOne);
+        MipsGenerator.getInstance().li(d, 1);
+        MipsGenerator.getInstance().jump(labelEnd);
 
-		/******************/
-		/* [5] labelEnd: */
-		/******************/
-		MipsGenerator.getInstance().label(labelEnd);
-	}
+        MipsGenerator.getInstance().label(labelAssignZero);
+        MipsGenerator.getInstance().li(d, 0);
+        MipsGenerator.getInstance().jump(labelEnd);
+
+        MipsGenerator.getInstance().label(labelEnd);
+    }
 }

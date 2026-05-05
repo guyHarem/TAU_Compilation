@@ -26,8 +26,11 @@ public class IrCommandStoreField extends IrCommand
         this.fieldOffset = fieldOffset;
 	}
 	
-	public void mipsMe()
-	{
-		MipsGenerator.getInstance().storeField(this.src, this.thisPtr, this.fieldOffset);
-	}
+	@Override public List<Temp> getUsedTemps() { return Arrays.asList(src, thisPtr); }
+    @Override public List<Temp> getDefTemps() { return Collections.emptyList(); }
+    @Override public void mipsMe() {
+        String s = RegAlloc.getInstance().allocation.get(src);
+        String p = RegAlloc.getInstance().allocation.get(thisPtr);
+        MipsGenerator.getInstance().storeField(s, p, fieldOffset);
+    }
 }

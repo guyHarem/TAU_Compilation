@@ -23,8 +23,7 @@ public class IrCommandStringLabel extends IrCommand
 		this.value = value;
 	}
 	
-	public void mipsMe()
-	{
-		MipsGenerator.getInstance().addStringLabel(label, value);
-	}
+	@Override public List<Temp> getUsedTemps() { return Collections.emptyList(); }
+    @Override public List<Temp> getDefTemps() { return Collections.emptyList(); }
+    @Override public void mipsMe() { MipsGenerator.getInstance().addStringLabel(label, value); }
 }

@@ -24,9 +24,11 @@ public class IrCommandStrLen extends IrCommand
 	}
 	
 	
-	@Override
-	public void mipsMe()
-	{
-		MipsGenerator.getInstance().strLen(this.dst, this.str);
-	}
+	@Override public List<Temp> getUsedTemps() { return Arrays.asList(str); }
+    @Override public List<Temp> getDefTemps() { return Arrays.asList(dst); }
+    @Override public void mipsMe() {
+        String s = RegAlloc.getInstance().allocation.get(str);
+        String d = RegAlloc.getInstance().allocation.get(dst);
+        MipsGenerator.getInstance().strLen(d, s);
+    }
 }

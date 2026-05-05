@@ -24,9 +24,11 @@ public class IrCommandStrCopy extends IrCommand
 	}
 	
 	
-	@Override
-	public void mipsMe()
-	{
-		MipsGenerator.getInstance().strCopy(this.dst, this.str);
-	}
+	@Override public List<Temp> getUsedTemps() { return Arrays.asList(str, dst); }
+    @Override public List<Temp> getDefTemps() { return Collections.emptyList(); }
+    @Override public void mipsMe() {
+        String s = RegAlloc.getInstance().allocation.get(str);
+        String d = RegAlloc.getInstance().allocation.get(dst);
+        MipsGenerator.getInstance().strCopy(d, s);
+    }
 }

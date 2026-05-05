@@ -24,4 +24,16 @@ public abstract class IrCommandBinop extends IrCommand
 		this.t1 = t1;
 		this.t2 = t2;
 	}
+	
+	@Override
+    public List<Temp> getUsedTemps() {
+        // Binary operations read from two source temporaries
+        return Arrays.asList(t1, t2);
+    }
+
+    @Override
+    public List<Temp> getDefTemps() {
+        // Binary operations write the result into the destination temporary
+        return Arrays.asList(dst);
+    }
 }

@@ -23,11 +23,13 @@ public class IrCommandReturn extends IrCommand
 		this.retval = retval;
 	}
 
-	public void mipsMe()
-	{
-		if (retval != null) {
-			MipsGenerator.getInstance().moveToReg("$v0", retval);
-		}
-		MipsGenerator.getInstance().ret();
-	}
+	@Override public List<Temp> getUsedTemps() { return retval != null ? Arrays.asList(retval) : Collections.emptyList(); }
+    @Override public List<Temp> getDefTemps() { return Collections.emptyList(); }
+    @Override public void mipsMe() {
+        if (retval != null) {
+            String r = RegAlloc.getInstance().allocation.get(retval);
+            MipsGenerator.getInstance().moveToReg("$v0", r);
+        }
+        MipsGenerator.getInstance().ret();
+    }
 }

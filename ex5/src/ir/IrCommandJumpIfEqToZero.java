@@ -24,8 +24,20 @@ public class IrCommandJumpIfEqToZero extends IrCommand
 		this.labelName = labelName;
 	}
 	
-	public void mipsMe()
-	{
-		MipsGenerator.getInstance().beqz(t, labelName);
-	}
+	@Override
+    public List<Temp> getUsedTemps() {
+        return Arrays.asList(t);
+    }
+
+    @Override
+    public List<Temp> getDefTemps() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void mipsMe()
+    {
+        String r = RegAlloc.getInstance().allocation.get(t);
+        MipsGenerator.getInstance().beqz(r, labelName);
+    }
 }

@@ -19,6 +19,9 @@ public class IrCommandBinopDivIntegers extends IrCommandBinop
 	
 	public void mipsMe()
 	{
-		MipsGenerator.getInstance().div(dst,t1,t2);
+		String d = RegAlloc.getInstance().allocation.get(dst);
+        String s1 = RegAlloc.getInstance().allocation.get(t1);
+        String s2 = RegAlloc.getInstance().allocation.get(t2);
+        MipsGenerator.getInstance().div(d, s1, s2);
 	}
 }

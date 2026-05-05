@@ -14,8 +14,12 @@ public class IrCommandStoreArray extends IrCommand {
         this.src = src;
     }
 
-    @Override
-    public void mipsMe() {
-        MipsGenerator.getInstance().storeArray(base, index, src);
+    @Override public List<Temp> getUsedTemps() { return Arrays.asList(base, index, src); }
+    @Override public List<Temp> getDefTemps() { return Collections.emptyList(); }
+    @Override public void mipsMe() {
+        String b = RegAlloc.getInstance().allocation.get(base);
+        String i = RegAlloc.getInstance().allocation.get(index);
+        String s = RegAlloc.getInstance().allocation.get(src);
+        MipsGenerator.getInstance().storeArray(b, i, s);
     }
 }
