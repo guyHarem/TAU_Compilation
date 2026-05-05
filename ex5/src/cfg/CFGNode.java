@@ -1,3 +1,5 @@
+package cfg;
+
 import ir.*;
 import java.util.*;
 

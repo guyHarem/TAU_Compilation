@@ -1,3 +1,5 @@
+package cfg;
+
 import ir.*;
 import java.io.*;
 import java.util.*;
@@ -37,7 +39,7 @@ public class CFGBuilder {
                 // canMoveToNext remains true because we might NOT jump
             } 
             // 3. Program/Function Terminations
-            else if (cmd instanceof IrCommandReturn || cmd instanceof IrCommandExit) {
+            else if (cmd instanceof IrCommandReturn || cmd instanceof IrCommandExit || cmd instanceof IrCommandFuncEnd) {
                 // Exit and Return have no successors in the local CFG
                 canMoveToNext = false;
             }

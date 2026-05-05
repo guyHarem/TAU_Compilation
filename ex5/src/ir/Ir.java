@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import mips.MipsGenerator;
 import temp.*;
+import cfg.*;
 
 public class Ir {
     public List<IrCommand> globalDecls = new ArrayList<>();
@@ -142,7 +143,10 @@ public class Ir {
         for (int i = 0; i < this.commands.size(); i++) {
             IrCommand current = this.commands.get(i);
             // A function always starts with its entry label
-            if (current instanceof IrCommandFuncEnd) functions.add(currentFunc);
+            if (current instanceof IrCommandFuncEnd) {
+                functions.add(currentFunc); currentFunc = null;
+                continue; // No need to add current.
+            }
             if (current instanceof IrCommandFuncStart) currentFunc = new ArrayList<>();
 
             if (currentFunc != null) currentFunc.add(current);
@@ -155,6 +159,7 @@ public class Ir {
         List<List<IrCommand>> functions = splitIrByFunctions();
         for (List<IrCommand> func : functions) {
             List<CFGNode> cfgNodes = CFGBuilder.buildCFG(func);
+            CFGBuilder.printToDotFile(cfgNodes, "dbg.txt"); // TODO: rm.
             RegAlloc.setInstance(cfgNodes);
             for (IrCommand cmd : func) {
                 cmd.mipsMe();

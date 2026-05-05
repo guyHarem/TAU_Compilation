@@ -24,4 +24,22 @@ public class Temp
 	{
 		return serial;
 	}
+
+	@Override
+    public String toString()
+    {
+        return "t" + serial;
+    }
+
+	@Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Temp)) return false;
+        return serial == ((Temp) obj).serial;
+    }
+
+	@Override
+    public int hashCode() {
+        return Integer.hashCode(serial);
+    }
 }

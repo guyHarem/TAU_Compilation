@@ -2,6 +2,7 @@ package ir;
 
 import java.util.*;
 import temp.*;
+import cfg.*;
 
 public class RegAlloc {
     public static final int K = 10; 
@@ -20,10 +21,8 @@ public class RegAlloc {
     private static RegAlloc instance = null;
     public static RegAlloc getInstance() { return instance; }
     
-    public static void setInstance(List<IrCommand> commands) {
-        // Step 1: Build the CFG instead of just a List
-        List<CFGNode> nodes = CFGBuilder.buildCFG(); 
-        instance = new RegAlloc(nodes);
+    public static void setInstance(List<CFGNode> commands) {
+        instance = new RegAlloc(commands);
         instance.run();
     }
 
@@ -38,10 +37,6 @@ public class RegAlloc {
         assignColors();
     }
 
-    /**
-     * Iterative Fixed-Point Liveness Analysis
-     * Correctly handles loops (back-edges) and branches.
-     */
     private void computeLiveness() {
         for (CFGNode n : nodes) {
             in.put(n.id, new HashSet<>());
@@ -51,18 +46,15 @@ public class RegAlloc {
         boolean changed = true;
         while (changed) {
             changed = false;
-            // Iterate backwards through node list for faster convergence
             for (int i = nodes.size() - 1; i >= 0; i--) {
                 CFGNode n = nodes.get(i);
                 Set<Temp> oldIn = new HashSet<>(in.get(n.id));
 
-                // OUT[n] = Union of IN[successors]
                 Set<Temp> currentOut = out.get(n.id);
                 for (CFGNode succ : n.successors) {
                     currentOut.addAll(in.get(succ.id));
                 }
 
-                // IN[n] = Use[n] U (OUT[n] - Def[n])
                 Set<Temp> currentIn = in.get(n.id);
                 currentIn.clear();
                 currentIn.addAll(currentOut);
@@ -72,10 +64,18 @@ public class RegAlloc {
                 if (!currentIn.equals(oldIn)) changed = true;
             }
         }
+
+        // Print liveness results
+        System.out.println("\n[LIVENESS] [IN]:");
+        in.forEach((id, temps) -> System.out.println("Node " + id + ": " + temps));
+        
+        System.out.println("\n[LIVENESS] [OUT]:");
+        out.forEach((id, temps) -> System.out.println("Node " + id + ": " + temps));
+        System.out.println();
     }
 
     private void buildInterferenceGraph() {
-        // Collect all temps from all commands
+        // 1. Initialize nodes
         for (CFGNode n : nodes) {
             allTemps.addAll(n.command.getUsedTemps());
             allTemps.addAll(n.command.getDefTemps());
@@ -85,21 +85,22 @@ public class RegAlloc {
             degree.put(t, 0);
         }
 
-        // Two variables interfere if they are live at the same location
+        // 2. Correct Interference Logic
         for (CFGNode n : nodes) {
-            // Edges based on IN sets
-            for (Temp t1 : in.get(n.id)) {
-                for (Temp t2 : in.get(n.id)) {
-                    addEdge(t1, t2);
-                }
-            }
-            // Edges based on OUT sets
-            for (Temp t1 : out.get(n.id)) {
-                for (Temp t2 : out.get(n.id)) {
-                    addEdge(t1, t2);
+            List<Temp> defs = n.command.getDefTemps();
+            Set<Temp> liveOut = out.get(n.id);
+            for (Temp d : defs) {
+                for (Temp l : liveOut) {
+                    // Destination does NOT interfere with Source in a MOVE (skip 'd = l' cases).
+                    if (n.command instanceof IrCommandMove && l.equals(((IrCommandMove) n.command).src)) continue;
+                    addEdge(d, l);
                 }
             }
         }
+        
+        System.out.println("\n[INTERFERCE] [ADJ]:");
+        adj.forEach((id, temps) -> System.out.println("Node " + id + ": " + temps));
+        System.out.println();
     }
 
     private void addEdge(Temp u, Temp v) {

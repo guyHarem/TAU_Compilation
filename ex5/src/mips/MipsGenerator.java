@@ -28,10 +28,6 @@ public class MipsGenerator
     public static String STRING_DIV0                = "string_illegal_div_by_0";
     public static String STRING_INV_PTR             = "string_invalid_ptr_dref";
 
-    private String tempToString(String t) {
-        return t;
-    }
-
     /***********************/
     /* The file writer ... */
     /***********************/
@@ -320,10 +316,6 @@ public class MipsGenerator
 
     public void popReg(String reg) {
         popw(reg);
-    }
-    
-    public void pushTemp(String t) {
-        pushw(tempToString(t));
     }
 
     public void ret() {
