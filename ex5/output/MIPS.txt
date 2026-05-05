@@ -33,8 +33,6 @@ _start:
 main:
 	li Temp_4,3
 	move $a0, Temp_4
-	addi $a0, $a0, 1
-	sll $a0, $a0, 2
 	li $v0, 9
 	syscall
 	move Temp_5, $v0
@@ -48,6 +46,7 @@ main:
 	bge Temp_7, $t0, label_access_violation
 	move $t0, Temp_7
 	addi $t0, $t0, 1
+	sll $t0, $t0, 2
 	add $t1, Temp_0, $t0
 	sw Temp_6, 0($t1)
 	la Temp_9, TempLabel_3
@@ -67,6 +66,7 @@ main:
 	bge Temp_11, $t0, label_access_violation
 	move $t0, Temp_11
 	addi $t0, $t0, 1
+	sll $t0, $t0, 2
 	add $t1, Temp_0, $t0
 	sw Temp_8, 0($t1)
 	lw Temp_14,global_s1@0
@@ -95,6 +95,7 @@ main:
 	bge Temp_17, $t0, label_access_violation
 	move $t0, Temp_17
 	addi $t0, $t0, 1
+	sll $t0, $t0, 2
 	add $t1, Temp_0, $t0
 	sw Temp_12, 0($t1)
 	li Temp_18,2
@@ -104,6 +105,7 @@ main:
 	bge Temp_18, $t0, label_access_violation
 	move $t0, Temp_18
 	addi $t0, $t0, 1
+	sll $t0, $t0, 2
 	add $t1, Temp_0, $t0
 	lw Temp_19, 0($t1)
 	move $a0, Temp_19
@@ -165,8 +167,6 @@ label_str_concat:
 	add Temp_27,Temp_25,Temp_26
 	add Temp_27,Temp_27,Temp_28
 	move $a0, Temp_27
-	addi $a0, $a0, 1
-	sll $a0, $a0, 2
 	li $v0, 9
 	syscall
 	move Temp_22, $v0

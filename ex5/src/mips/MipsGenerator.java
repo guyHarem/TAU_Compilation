@@ -199,11 +199,11 @@ public class MipsGenerator
 		int b = base.getSerialNumber();
 		int i = index.getSerialNumber();
 
-		// Calculate offset: (index + 1) 
+		// Calculate offset: (index + 1) * 4
 		// We add 1 because the length is at offset 0
 		fileWriter.format("\tmove $t0, Temp_%d\n", i);
 		fileWriter.format("\taddi $t0, $t0, 1\n");
-		// fileWriter.format("\tsll $t0, $t0, 2\n"); // multiply by 4
+		fileWriter.format("\tsll $t0, $t0, 2\n"); // multiply by 4
 		fileWriter.format("\tadd $t1, Temp_%d, $t0\n", b);
 		fileWriter.format("\tlw Temp_%d, 0($t1)\n", d);
 	}
@@ -213,11 +213,11 @@ public class MipsGenerator
 		int i = index.getSerialNumber();
 		int s = src.getSerialNumber();
 
-		// Calculate offset: (index + 1) 
+		// Calculate offset: (index + 1) * 4
 		// We add 1 because the length is at offset 0
 		fileWriter.format("\tmove $t0, Temp_%d\n", i);
 		fileWriter.format("\taddi $t0, $t0, 1\n");
-		// fileWriter.format("\tsll $t0, $t0, 2\n"); // multiply by 4
+		fileWriter.format("\tsll $t0, $t0, 2\n"); // multiply by 4
 		fileWriter.format("\tadd $t1, Temp_%d, $t0\n", b);
 		fileWriter.format("\tsw Temp_%d, 0($t1)\n", s);
 	}
@@ -283,24 +283,18 @@ public class MipsGenerator
 	}
 
 	/**
-	 * Mallocs memory for an array: (size + 1) * 4 bytes.
+	 * Mallocs memory.
 	 * Resulting address is returned in 'dst'.
 	 */
 	public void malloc(Temp dst, Temp size) {
 		int d = dst.getSerialNumber();
 		int s = size.getSerialNumber();
 
-		// Calculate total bytes: (size + 1) << 2
-		fileWriter.format("\tmove $a0, Temp_%d\n", s);
-		fileWriter.format("\taddi $a0, $a0, 1\n");
-		fileWriter.format("\tsll $a0, $a0, 2\n");
-
 		// Allocate Heap Memory (sbrk)
+		fileWriter.format("\tmove $a0, Temp_%d\n", s);
 		fileWriter.format("\tli $v0, 9\n");
 		fileWriter.format("\tsyscall\n");
-
-		// Move result from $v0 to our destination temp
-		fileWriter.format("\tmove Temp_%d, $v0\n", d);
+		fileWriter.format("\tmove Temp_%d, $v0\n", d); // Move result to destination
 	}
 
 	/**
