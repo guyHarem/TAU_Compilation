@@ -5,15 +5,13 @@ import temp.*;
 
 public class RegAlloc {
     public static final int K = 10; 
-    private List<IrCommand> commands;
+    private List<CFGNode> nodes; // Now operating on the CFG
     
-    // The final mapping: Temp ID -> Physical Register String
     public Map<Temp, String> allocation = new HashMap<>();
-    
-    // Liveness info for caller-save logic
-    private Map<IrCommand, Set<Temp>> liveOutMap = new HashMap<>();
+    private Map<Integer, Set<Temp>> in = new HashMap<>();
+    private Map<Integer, Set<Temp>> out = new HashMap<>();
 
-    // Internal Graph Structures
+    // Graph Structures
     private Map<Temp, Set<Temp>> adj = new HashMap<>();
     private Map<Temp, Integer> degree = new HashMap<>();
     private Stack<Temp> stack = new Stack<>();
@@ -23,12 +21,14 @@ public class RegAlloc {
     public static RegAlloc getInstance() { return instance; }
     
     public static void setInstance(List<IrCommand> commands) {
-        instance = new RegAlloc(commands);
+        // Step 1: Build the CFG instead of just a List
+        List<CFGNode> nodes = CFGBuilder.buildCFG(); 
+        instance = new RegAlloc(nodes);
         instance.run();
     }
 
-    private RegAlloc(List<IrCommand> commands) {
-        this.commands = commands;
+    private RegAlloc(List<CFGNode> nodes) {
+        this.nodes = nodes;
     }
 
     private void run() {
@@ -38,49 +38,65 @@ public class RegAlloc {
         assignColors();
     }
 
-    private void computeLiveness() {
-        Set<Temp> live = new HashSet<>();
-        for (int i = commands.size() - 1; i >= 0; i--) {
-            IrCommand cmd = commands.get(i);
-            liveOutMap.put(cmd, new HashSet<>(live));
-            live.removeAll(cmd.getDefTemps());
-            live.addAll(cmd.getUsedTemps());
-        }
-    }
-
     /**
-     * Helper for IrCommandCall: returns physical registers ($t0-$t9) 
-     * that are live immediately after this command.
+     * Iterative Fixed-Point Liveness Analysis
+     * Correctly handles loops (back-edges) and branches.
      */
-    public List<String> getLiveRegsForCall(IrCommand cmd) {
-        List<String> liveRegs = new ArrayList<>();
-        Set<Temp> liveTemps = liveOutMap.get(cmd);
-        if (liveTemps == null) return liveRegs;
-
-        for (Temp t : liveTemps) {
-            String reg = allocation.get(t);
-            if (reg != null) liveRegs.add(reg);
+    private void computeLiveness() {
+        for (CFGNode n : nodes) {
+            in.put(n.id, new HashSet<>());
+            out.put(n.id, new HashSet<>());
         }
-        return liveRegs;
+
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            // Iterate backwards through node list for faster convergence
+            for (int i = nodes.size() - 1; i >= 0; i--) {
+                CFGNode n = nodes.get(i);
+                Set<Temp> oldIn = new HashSet<>(in.get(n.id));
+
+                // OUT[n] = Union of IN[successors]
+                Set<Temp> currentOut = out.get(n.id);
+                for (CFGNode succ : n.successors) {
+                    currentOut.addAll(in.get(succ.id));
+                }
+
+                // IN[n] = Use[n] U (OUT[n] - Def[n])
+                Set<Temp> currentIn = in.get(n.id);
+                currentIn.clear();
+                currentIn.addAll(currentOut);
+                currentIn.removeAll(n.command.getDefTemps());
+                currentIn.addAll(n.command.getUsedTemps());
+
+                if (!currentIn.equals(oldIn)) changed = true;
+            }
+        }
     }
 
     private void buildInterferenceGraph() {
-        // Collect all temps
-        for (IrCommand cmd : commands) {
-            allTemps.addAll(cmd.getUsedTemps());
-            allTemps.addAll(cmd.getDefTemps());
+        // Collect all temps from all commands
+        for (CFGNode n : nodes) {
+            allTemps.addAll(n.command.getUsedTemps());
+            allTemps.addAll(n.command.getDefTemps());
         }
         for (Temp t : allTemps) {
             adj.put(t, new HashSet<>());
             degree.put(t, 0);
         }
 
-        // Build edges: A variable is live-out of a command, it interferes with what that command defines
-        for (IrCommand cmd : commands) {
-            Set<Temp> liveOut = liveOutMap.get(cmd);
-            for (Temp def : cmd.getDefTemps()) {
-                for (Temp l : liveOut) {
-                    addEdge(def, l);
+        // Two variables interfere if they are live at the same location
+        for (CFGNode n : nodes) {
+            // Edges based on IN sets
+            for (Temp t1 : in.get(n.id)) {
+                for (Temp t2 : in.get(n.id)) {
+                    addEdge(t1, t2);
+                }
+            }
+            // Edges based on OUT sets
+            for (Temp t1 : out.get(n.id)) {
+                for (Temp t2 : out.get(n.id)) {
+                    addEdge(t1, t2);
                 }
             }
         }
@@ -99,6 +115,7 @@ public class RegAlloc {
         List<Temp> worklist = new ArrayList<>(allTemps);
         while (!worklist.isEmpty()) {
             Temp found = null;
+            // Chaitin's heuristic: find node with degree < K
             for (Temp t : worklist) {
                 if (degree.get(t) < K) {
                     found = t;
@@ -107,7 +124,7 @@ public class RegAlloc {
             }
 
             if (found == null) {
-                System.out.println("Register Allocation Failed");
+                System.out.println("Register Allocation Failed: Spilling required.");
                 System.exit(0);
             }
 
@@ -136,5 +153,22 @@ public class RegAlloc {
                 }
             }
         }
+    }
+
+    public List<String> getLiveRegsForCall(IrCommand cmd) {
+        List<String> liveRegs = new ArrayList<>();
+        // Find the node corresponding to this command
+        CFGNode target = null;
+        for (CFGNode n : nodes) {
+            if (n.command == cmd) { target = n; break; }
+        }
+        if (target == null) return liveRegs;
+
+        Set<Temp> liveTemps = out.get(target.id);
+        for (Temp t : liveTemps) {
+            String reg = allocation.get(t);
+            if (reg != null) liveRegs.add(reg);
+        }
+        return liveRegs;
     }
 }

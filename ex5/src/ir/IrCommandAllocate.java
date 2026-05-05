@@ -6,11 +6,10 @@ package ir;
 /*******************/
 /* GENERAL IMPORTS */
 /*******************/
-
-/*******************/
-/* PROJECT IMPORTS */
-/*******************/
+import java.util.Collections;
+import java.util.List;
 import mips.*;
+import temp.*;
 
 public class IrCommandAllocate extends IrCommand
 {
@@ -20,6 +19,16 @@ public class IrCommandAllocate extends IrCommand
 	{
 		this.varName = varName;
 	}
+	
+	@Override
+    public List<Temp> getUsedTemps() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Temp> getDefTemps() {
+        return Collections.emptyList();
+    }
 	
 	public void mipsMe()
 	{

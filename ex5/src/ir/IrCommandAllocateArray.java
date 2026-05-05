@@ -1,4 +1,6 @@
 package ir;
+import java.util.Arrays;
+import java.util.List;
 import mips.*;
 import temp.*;
 

@@ -1,11 +1,16 @@
 package ir;
 
+import java.util.List;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+
 import mips.*;
 import temp.*;
 
 public class IrCommandCall extends IrCommand {
     public Temp dst;
-    public Temp receiver;  // 'this' pointer (only relevant for methods. null for global functions)
+    public Temp receiver;
     public String label;
     public Temp[] args;
 
@@ -17,10 +22,28 @@ public class IrCommandCall extends IrCommand {
     }
 
     private Temp[] insert(Temp val, Temp[] array) {
-        Temp[] result = array;
-        result = new Temp[array.length + 1];
+        Temp[] result = new Temp[array.length + 1];
         result[0] = val;
         System.arraycopy(array, 0, result, 1, array.length);
+        return result;
+    }
+
+    @Override
+    public List<Temp> getUsedTemps() {
+        List<Temp> used = new ArrayList<>();
+        if (receiver != null) {
+            used.add(receiver);
+        }
+        used.addAll(Arrays.asList(args));
+        return used;
+    }
+
+    @Override
+    public List<Temp> getDefTemps() {
+        if (dst != null) {
+            return Arrays.asList(dst);
+        }
+        return Collections.emptyList();
     }
 
     @Override
@@ -28,18 +51,20 @@ public class IrCommandCall extends IrCommand {
         RegAlloc ra = RegAlloc.getInstance();
 
         List<String> regsToSave = ra.getLiveRegsForCall(this);
-        for (String reg : regsToSave) MipsGenerator.getInstance().pushReg(reg);
+        for (String reg : regsToSave) {
+            MipsGenerator.getInstance().pushReg(reg);
+        }
         MipsGenerator.getInstance().pushReg("$ra");
 
         Temp[] finalArgs = (receiver != null) ? insert(receiver, args) : args;
-        for (int i = 0; i < args.length; i++) {
+        for (int i = 0; i < finalArgs.length; i++) {
             String physReg = ra.allocation.get(finalArgs[i]);
-            if (i < 4) MipsGenerator.getInstance().moveToReg(String.format("$a%d", i), physReg); // Use $a0 - $a3
-            else MipsGenerator.getInstance().pushReg(physReg); // Push remaining args to stack
+            if (i < 4) MipsGenerator.getInstance().moveToReg(String.format("$a%d", i), physReg);
+            else MipsGenerator.getInstance().pushReg(physReg);
         }
+
         MipsGenerator.getInstance().jal(label);
 
-        // Move the result from $v0 to our destination temporary
         if (dst != null) {
             String destPhysReg = ra.allocation.get(dst);
             MipsGenerator.getInstance().moveFromReg("$v0", destPhysReg);

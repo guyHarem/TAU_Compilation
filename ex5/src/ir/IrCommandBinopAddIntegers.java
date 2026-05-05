@@ -6,10 +6,6 @@ package ir;
 /*******************/
 /* GENERAL IMPORTS */
 /*******************/
-
-/*******************/
-/* PROJECT IMPORTS */
-/*******************/
 import mips.*;
 import temp.*;
 

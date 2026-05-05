@@ -43,9 +43,10 @@ public class MipsGenerator
         fileWriter.close();
     }
 
+    // NOTICE: Because of the hardcoded labels this must only be placed once in the code.
     public void strLen(String dst, String str) {
-        String labelStart = "strlen_start_" + dst;
-        String labelEnd = "strlen_end_" + dst;
+        String labelStart = "strlen_start";
+        String labelEnd = "strlen_end";
 
         // dst = 0; t1 = src;
         fileWriter.format("\tli %s, 0\n", dst);
@@ -63,10 +64,11 @@ public class MipsGenerator
         fileWriter.format("%s:\n", labelEnd);
     }
 
+    // NOTICE: Because of the hardcoded labels this must only be placed once in the code.
     // This also NULL terminates the string.
     public void strCopy(String dst, String src) {
-        String labelStart = "strcopy_start_" + dst;
-        String labelEnd = "strcopy_end_" + dst;
+        String labelStart = "strcopy_start";
+        String labelEnd = "strcopy_end";
 
         // t0 = s; t1 = d;
         fileWriter.format("\tmove $t0, %s\n", src);
@@ -104,6 +106,10 @@ public class MipsGenerator
         fileWriter.format("\tmove $a0, %s\n", t);
         fileWriter.println("\tli $v0, 4");
         fileWriter.println("\tsyscall");
+    }
+
+    public void loadFromReg(String d, int offset, String srcReg) {
+        fileWriter.format("\tlw %s, %d(%s)\n", d, offset, srcReg);
     }
 
     public void allocate(String varName) {

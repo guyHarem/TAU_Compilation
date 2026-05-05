@@ -1,5 +1,6 @@
 package ir;
 
+import ast.AstFuncDec;
 import java.util.ArrayList;
 import java.util.List;
 import mips.MipsGenerator;
@@ -135,10 +136,29 @@ public class Ir {
         this.commands = masterList;
     }
 
+    public List<List<IrCommand>> splitIrByFunctions() {
+        List<List<IrCommand>> functions = new ArrayList<>();
+        List<IrCommand> currentFunc = null;
+        for (int i = 0; i < this.commands.size(); i++) {
+            IrCommand current = this.commands.get(i);
+            // A function always starts with its entry label
+            if (current instanceof IrCommandFuncEnd) functions.add(currentFunc);
+            if (current instanceof IrCommandFuncStart) currentFunc = new ArrayList<>();
+
+            if (currentFunc != null) currentFunc.add(current);
+        }
+        if (currentFunc != null) functions.add(currentFunc);
+        return functions;
+    }
+
     public void mipsMe() {
-        RegAlloc.setInstance(commands);
-        for (IrCommand cmd : commands) {
-            cmd.mipsMe();
+        List<List<IrCommand>> functions = splitIrByFunctions();
+        for (List<IrCommand> func : functions) {
+            List<CFGNode> cfgNodes = CFGBuilder.buildCFG(func);
+            RegAlloc.setInstance(cfgNodes);
+            for (IrCommand cmd : func) {
+                cmd.mipsMe();
+            }
         }
     }
 }

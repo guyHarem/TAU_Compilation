@@ -6,6 +6,9 @@ package ir;
 /*******************/
 /* GENERAL IMPORTS */
 /*******************/
+import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
 
 /*******************/
 /* PROJECT IMPORTS */
@@ -15,11 +18,11 @@ import temp.*;
 
 public class IrCommandStoreAt extends IrCommand {
     public Temp address;
-    public Temp size;
+    public Temp value;
 
-    public IrCommandStoreAt(Temp address, Temp size) {
+    public IrCommandStoreAt(Temp address, Temp value) {
         this.address = address;
-        this.size = size;
+        this.value = value;
     }
 
     @Override public List<Temp> getUsedTemps() { return Arrays.asList(address, value); }

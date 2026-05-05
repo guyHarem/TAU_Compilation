@@ -94,10 +94,13 @@ public class AstVarSimple extends AstVar {
         switch (this.caseType) {
             case 1: // LOCAL
                 Ir.getInstance().AddIrCommand(new IrCommandMove(this.localTemp, src));
+                break;
             case 2: // FIELD
                 Ir.getInstance().AddIrCommand(new IrCommandStoreField(src, this.localTemp, this.fieldOffset));
+                break;
             case 3: // GLOBAL
                 Ir.getInstance().AddIrCommand(new IrCommandStoreGlobal(this.unique_name, src));
+                break;
         }
     }
 

@@ -6,10 +6,14 @@ package ir;
 /*******************/
 /* GENERAL IMPORTS */
 /*******************/
+import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
 
 /*******************/
 /* PROJECT IMPORTS */
 /*******************/
+import temp.*;
 
 public abstract class IrCommand
 {

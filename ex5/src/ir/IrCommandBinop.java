@@ -10,6 +10,8 @@ package ir;
 /*******************/
 /* PROJECT IMPORTS */
 /*******************/
+import java.util.Arrays;
+import java.util.List;
 import temp.*;
 
 public abstract class IrCommandBinop extends IrCommand
@@ -24,7 +26,7 @@ public abstract class IrCommandBinop extends IrCommand
 		this.t1 = t1;
 		this.t2 = t2;
 	}
-	
+
 	@Override
     public List<Temp> getUsedTemps() {
         // Binary operations read from two source temporaries

@@ -120,29 +120,35 @@ public class AstFuncDec extends AstDec {
     }
 	
 	@Override
-	public Temp irMe()
-	{
-		System.out.println("[DEBUG] AstFuncDec irMe: " + name);
+    public Temp irMe() {
+        Ir.getInstance().AddIrCommand(new IrCommandFuncStart(name));
+
+        // If in a class, $a0 is 'this'. Capture it first.
         if (SymbolTable.getInstance().getCurrentClass() != null) {
-            Temp thisTemp = temp.TempFactory.getInstance().getFreshTemp();
+            Temp thisTemp = TempFactory.getInstance().getFreshTemp();
             Ir.getInstance().AddIrCommand(new IrCommandMoveFromReg("$a0", thisTemp));
             SymbolTable.getInstance().currThis = thisTemp;
-		    System.out.println("[DEBUG] AstFuncDec Moved-To-This: " + thisTemp.toString());
         }
-        
-		// String labelEnd = IrCommand.getFreshLabel("end");
-		// Ir.getInstance().AddIrCommand(new IrCommandJumpLabel(labelEnd));
-		Ir.getInstance().AddIrCommand(new IrCommandLabel(name)); // TODO: Check that rettype=void for main?
-		if (body != null) body.irMe();
 
-        /*
-        If the function is a VOID function, it's allowed to not have a 'return' at the end. So add it.
-        (TODO: Cause error if there's no return in a non-void function [during the semantic phase]).
-        */
+        // Move parameters from $a0-a3 (or stack) into their corresponding Temps
+        if (params != null) {
+            int i = (SymbolTable.getInstance().getCurrentClass() != null) ? 1 : 0;
+            for (AstList<AstVarDec> it = params; it != null; it = it.tail) {
+                if (it.head != null) {
+                    Temp pTemp = it.head.irMe();
+                    if (i < 4) Ir.getInstance().AddIrCommand(new IrCommandMoveFromReg("$a" + i, pTemp));
+                    else {
+                        int offset = (i - 4) * 4;
+                        Ir.getInstance().AddIrCommand(new IrCommandLoadFromReg(pTemp, "$sp", offset));
+                    }
+                    i++;
+                }
+            }
+        }
+
+        if (body != null) body.irMe();
         if (this.type.name.equals("void")) Ir.getInstance().AddIrCommand(new IrCommandReturn(null));
-		// Ir.getInstance().AddIrCommand(new IrCommandLabel(labelEnd));
-
-        // if (this.name.equals("main")) Ir.getInstance().AddIrCommand(new IrCommandExit());
-		return null;
-	}
+        Ir.getInstance().AddIrCommand(new IrCommandFuncEnd(name + "_END"));
+        return null;
+    }
 }

@@ -1,5 +1,9 @@
 package ir;
 
+import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
+
 import mips.*;
 import temp.*;
 
@@ -11,7 +15,7 @@ public class IrCommandBoundsCheck extends IrCommand {
         this.base = base;
         this.index = index;
     }
-    
+
     @Override
     public List<Temp> getUsedTemps() {
         return Arrays.asList(base, index);
