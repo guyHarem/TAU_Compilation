@@ -300,6 +300,10 @@ public class MipsGenerator
         fileWriter.format("\tmove %s, %s\n", dst, srcReg);
     }
 
+    public void addToSp(int amount) {
+        fileWriter.format("\taddu $sp, $sp, %d\n", amount);
+    }
+
     public void pushw(String s) {
         fileWriter.format("\tsubu $sp, $sp, %d\n", WORD_SIZE);
         fileWriter.format("\tsw %s, 0($sp)\n", s);

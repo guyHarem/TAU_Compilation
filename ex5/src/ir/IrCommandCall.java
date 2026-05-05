@@ -49,7 +49,6 @@ public class IrCommandCall extends IrCommand {
     @Override
     public void mipsMe() {
         RegAlloc ra = RegAlloc.getInstance();
-
         List<String> regsToSave = ra.getLiveRegsForCall(this);
         for (String reg : regsToSave) {
             MipsGenerator.getInstance().pushReg(reg);
@@ -57,6 +56,7 @@ public class IrCommandCall extends IrCommand {
         MipsGenerator.getInstance().pushReg("$ra");
 
         Temp[] finalArgs = (receiver != null) ? insert(receiver, args) : args;
+        int argsMemSize  = (finalArgs.length - 4) * 4;
         for (int i = 0; i < finalArgs.length; i++) {
             String physReg = ra.allocation.get(finalArgs[i]);
             if (i < 4) MipsGenerator.getInstance().moveToReg(String.format("$a%d", i), physReg);
@@ -75,5 +75,6 @@ public class IrCommandCall extends IrCommand {
             String destPhysReg = ra.allocation.get(dst);
             MipsGenerator.getInstance().moveFromReg("$v0", destPhysReg);
         }
+        if (argsMemSize > 0 /* If we actually used mem for args */) MipsGenerator.getInstance().addToSp(argsMemSize);
     }
 }
