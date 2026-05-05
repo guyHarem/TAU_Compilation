@@ -65,14 +65,15 @@ public class IrCommandCall extends IrCommand {
 
         MipsGenerator.getInstance().jal(label);
 
-        if (dst != null) {
-            String destPhysReg = ra.allocation.get(dst);
-            MipsGenerator.getInstance().moveFromReg("$v0", destPhysReg);
-        }
-        
+        // These have to be the first operations after return, because they ignore register allocation.
         MipsGenerator.getInstance().popReg("$ra");
         for (int i = regsToSave.size() - 1; i >= 0; i--) {
             MipsGenerator.getInstance().popReg(regsToSave.get(i));
+        }
+
+        if (dst != null) {
+            String destPhysReg = ra.allocation.get(dst);
+            MipsGenerator.getInstance().moveFromReg("$v0", destPhysReg);
         }
     }
 }

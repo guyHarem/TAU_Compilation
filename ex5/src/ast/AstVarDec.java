@@ -19,6 +19,7 @@ public class AstVarDec extends AstDec {
         this.name = name;
         this.exp = exp;
         this.line = lineNum;
+        this.temp = null;
     }
 
     @Override
@@ -63,7 +64,7 @@ public class AstVarDec extends AstDec {
         SymbolTableEntry entry = SymbolTable.getInstance().findEntry(name);
         this.unique_name = name + "@" + entry.scopeLevel;
 
-        // Assign a Temp only for local variables (non-global, non-field)
+        // Assign a Temp only for local variables (non-global, non-field) TODO: This probably also assigns to fields.
         if (SymbolTable.getInstance().currentScopeLevel > 0) {
             entry.temp = TempFactory.getInstance().getFreshTemp();
             this.temp = entry.temp;
@@ -94,12 +95,12 @@ public class AstVarDec extends AstDec {
                 Ir.getInstance().AddIrCommand(new IrCommandStoreGlobal(unique_name, exp.irMe()));
                 Ir.getInstance().activeList = Ir.getInstance().commands;
             }
-        } else {
+        } else { // TODO: Do I need to add case for class variable? Or is it not relevant to initialization?
             // Ir.getInstance().AddIrCommand(new IrCommandAllocateLocal(unique_name)); (TODO)
             if (exp != null) {
                 Ir.getInstance().AddIrCommand(new IrCommandMove(this.temp, exp.irMe()));
             }
         }
-        return null;
+        return this.temp; // Returns null for global vairables/fields.
     }
 }
