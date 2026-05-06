@@ -1,11 +1,9 @@
 digraph CFG {
-    51 [label="FuncStart (51)"];
-    51 -> 52;
-    52 [label="ConstInt (52)"];
-    52 -> 53;
-    53 [label="ConstInt (53)"];
-    53 -> 54;
-    54 [label="Call (54)"];
-    54 -> 55;
-    55 [label="Return (55)"];
+    104 [label="FuncStart (104)"];
+    104 -> 105;
+    105 [label="LoadAddress (105)"];
+    105 -> 106;
+    106 [label="PrintString (106)"];
+    106 -> 107;
+    107 [label="Exit (107)"];
 }

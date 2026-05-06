@@ -148,7 +148,7 @@ public class AstFuncDec extends AstDec {
 
         if (body != null) body.irMe();
         if (this.type.name.equals("void")) Ir.getInstance().AddIrCommand(new IrCommandReturn(null));
-        Ir.getInstance().AddIrCommand(new IrCommandFuncEnd(name + "_END"));
+        Ir.getInstance().AddIrCommand(new IrCommandFuncEnd(name));
         return null;
     }
 }

@@ -18,5 +18,5 @@ import temp.*;
 
 public class IrCommandFuncEnd extends IrCommandLabel
 {
-	public IrCommandFuncEnd(String labelName) { super(labelName); }
+	public IrCommandFuncEnd(String labelName) { super(labelName + "_END"); }
 }

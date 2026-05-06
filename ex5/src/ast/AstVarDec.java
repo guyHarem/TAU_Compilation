@@ -89,14 +89,14 @@ public class AstVarDec extends AstDec {
     @Override
     public Temp irMe() {
         if (this.caseType == 3 /* global */) {
-            Ir.getInstance().AddIrGlobalDecleration(new IrCommandAllocate(unique_name));
+            Ir.getInstance().AddIrGlobalDecleration(new IrCommandAllocate(name));
             if (exp != null) {
                 Ir.getInstance().activeList = Ir.getInstance().globalInits;
-                Ir.getInstance().AddIrCommand(new IrCommandStoreGlobal(unique_name, exp.irMe()));
+                Ir.getInstance().AddIrCommand(new IrCommandStoreGlobal(name, exp.irMe()));
                 Ir.getInstance().activeList = Ir.getInstance().commands;
             }
         } else { // TODO: Do I need to add case for class variable? Or is it not relevant to initialization?
-            // Ir.getInstance().AddIrCommand(new IrCommandAllocateLocal(unique_name)); (TODO)
+            // Ir.getInstance().AddIrCommand(new IrCommandAllocateLocal(name)); (TODO)
             if (exp != null) {
                 Ir.getInstance().AddIrCommand(new IrCommandMove(this.temp, exp.irMe()));
             }

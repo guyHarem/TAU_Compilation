@@ -1,6 +1,7 @@
 package ast;
 
 import ir.*;
+import mips.MipsGenerator;
 import symboltable.*;
 import temp.*;
 import types.*;
@@ -155,11 +156,11 @@ public class AstCallExp extends AstExp {
 
         // Handle Library syscalls
         if (this.funcName.equals("PrintInt")) {
-            Ir.getInstance().AddIrCommand(new IrCommandPrintInt(argTemps[0])); // Syscall 1
+            Ir.getInstance().AddIrCommand(new IrCommandCall(null, null, MipsGenerator.LABEL_PRINT_INT, argTemps));
             return null; // PrintInt is void
         }
         if (this.funcName.equals("PrintString")) {
-            Ir.getInstance().AddIrCommand(new IrCommandPrintString(argTemps[0])); // Syscall 4
+            Ir.getInstance().AddIrCommand(new IrCommandCall(null, null, MipsGenerator.LABEL_PRINT_STRING, argTemps));
             return null; // PrintString is void
         }
 

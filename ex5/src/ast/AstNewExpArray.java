@@ -4,6 +4,7 @@ import ir.*;
 import temp.*;
 import types.*;
 import symboltable.*;
+import mips.*;
 
 public class AstNewExpArray extends AstNewExp {
     public AstExp exp;
@@ -67,7 +68,7 @@ public class AstNewExpArray extends AstNewExp {
         Temp size = exp.irMe();
         // Allocate memory. We add 1 word to store the length at index 0
         Temp address = TempFactory.getInstance().getFreshTemp();
-        Ir.getInstance().AddIrCommand(new IrCommandMalloc(address, size));
+        Ir.getInstance().AddIrCommand(new IrCommandCall(address, null, MipsGenerator.LABEL_ALLOC_ARRAY, new Temp[]{size}));
         // Store the length at the start of the allocated block
         Ir.getInstance().AddIrCommand(new IrCommandStoreAt(address, size));
 

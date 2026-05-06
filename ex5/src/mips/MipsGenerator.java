@@ -19,6 +19,10 @@ public class MipsGenerator
     public static String LABEL_STRLEN           = "label_strlen";
     public static String LABEL_STRCOPY          = "label_strcpy";
     public static String LABEL_STR_CONCAT       = "label_str_concat";
+    public static String LABEL_PRINT_INT        = "label_print_int";
+    public static String LABEL_PRINT_STRING     = "label_print_string";
+    public static String LABEL_MALLOC           = "label_malloc";
+    public static String LABEL_ALLOC_ARRAY      = "label_alloc_array";
 
     public static String LABEL_ACCESS_VIOLATION = "label_access_violation";
     public static String LABEL_DIV0             = "label_illegal_div_by_0";
@@ -44,18 +48,15 @@ public class MipsGenerator
         String labelStart = "strlen_start";
         String labelEnd = "strlen_end";
 
-        // dst = 0; t1 = src;
-        fileWriter.format("\tli %s, 0\n", dst);
-        fileWriter.format("\tmove $t1, %s\n", str);
+        fileWriter.format("\tmove $s1, %s\n", str); // Load string addr into iterator
+        fileWriter.format("\tli %s, 0\n", dst);     // Initialize counter to 0
 
-        // while (*t1 != 0)
         fileWriter.format("%s:\n", labelStart);
-        fileWriter.format("\tlb $t0, 0($t1)\n");
-        fileWriter.format("\tbeq $t0, $zero, %s\n", labelEnd);
+        fileWriter.format("\tlb $s0, 0($s1)\n");
+        fileWriter.format("\tbeq $s0, $zero, %s\n", labelEnd);
 
-        // dst++; t1++;
         fileWriter.format("\taddi %s, %s, 1\n", dst, dst);
-        fileWriter.format("\taddi $t1, $t1, 1\n");
+        fileWriter.format("\taddi $s1, $s1, 1\n");
         fileWriter.format("\tj %s\n", labelStart);
         fileWriter.format("%s:\n", labelEnd);
     }
@@ -67,23 +68,23 @@ public class MipsGenerator
         String labelEnd = "strcopy_end";
 
         // t0 = s; t1 = d;
-        fileWriter.format("\tmove $t0, %s\n", src);
-        fileWriter.format("\tmove $t1, %s\n", dst);
+        fileWriter.format("\tmove $s0, %s\n", src);
+        fileWriter.format("\tmove $s1, %s\n", dst);
 
         // while (t0 != 0)
         fileWriter.format("%s:\n", labelStart);
-        fileWriter.format("\tlb $t2, 0($t0)\n");
-        fileWriter.format("\tbeq $t2, $zero, %s\n", labelEnd);
+        fileWriter.format("\tlb $s2, 0($s0)\n");
+        fileWriter.format("\tbeq $s2, $zero, %s\n", labelEnd);
         
         // *(t1++) = *(t0++)
-        fileWriter.format("\tsb $t2, 0($t1)\n");
-        fileWriter.format("\taddi $t0, $t0, 1\n");
-        fileWriter.format("\taddi $t1, $t1, 1\n");
+        fileWriter.format("\tsb $s2, 0($s1)\n");
+        fileWriter.format("\taddi $s0, $s0, 1\n");
+        fileWriter.format("\taddi $s1, $s1, 1\n");
         fileWriter.format("\tj %s\n", labelStart);
         fileWriter.format("%s:\n", labelEnd);
         
         // Null Terminate (*t1 = 0)
-        fileWriter.format("\tsb $zero, 0($t1)\n");
+        fileWriter.format("\tsb $zero, 0($s1)\n");
     }
     
     public void printInt(String t)
@@ -155,28 +156,28 @@ public class MipsGenerator
      */
     public void arrayBoundsCheck(String base, String index) {
         fileWriter.format("\tbltz %s, label_access_violation\n", index);       // i < 0?
-        fileWriter.format("\tlw $t0, 0(%s)\n", base);                         // i >= len? (*)
-        fileWriter.format("\tbge %s, $t0, label_access_violation\n", index);   // If (*), jump to error.
+        fileWriter.format("\tlw $s0, 0(%s)\n", base);                         // i >= len? (*)
+        fileWriter.format("\tbge %s, $s0, label_access_violation\n", index);   // If (*), jump to error.
     }
 
     public void loadArray(String dst, String base, String index) {
         // Calculate offset: (index + 1) * 4
         // We add 1 because the length is at offset 0
-        fileWriter.format("\tmove $t0, %s\n", index);
-        fileWriter.format("\taddi $t0, $t0, 1\n");
-        fileWriter.format("\tsll $t0, $t0, 2\n"); // multiply by 4
-        fileWriter.format("\tadd $t1, %s, $t0\n", base);
-        fileWriter.format("\tlw %s, 0($t1)\n", dst);
+        fileWriter.format("\tmove $s0, %s\n", index);
+        fileWriter.format("\taddi $s0, $s0, 1\n");
+        fileWriter.format("\tsll $s0, $s0, 2\n"); // multiply by 4
+        fileWriter.format("\tadd $s1, %s, $s0\n", base);
+        fileWriter.format("\tlw %s, 0($s1)\n", dst);
     }
 
     public void storeArray(String base, String index, String src) {
         // Calculate offset: (index + 1) * 4
         // We add 1 because the length is at offset 0
-        fileWriter.format("\tmove $t0, %s\n", index);
-        fileWriter.format("\taddi $t0, $t0, 1\n");
-        fileWriter.format("\tsll $t0, $t0, 2\n"); // multiply by 4
-        fileWriter.format("\tadd $t1, %s, $t0\n", base);
-        fileWriter.format("\tsw %s, 0($t1)\n", src);
+        fileWriter.format("\tmove $s0, %s\n", index);
+        fileWriter.format("\taddi $s0, $s0, 1\n");
+        fileWriter.format("\tsll $s0, $s0, 2\n"); // multiply by 4
+        fileWriter.format("\tadd $s1, %s, $s0\n", base);
+        fileWriter.format("\tsw %s, 0($s1)\n", src);
     }
 
     public void addStringLabel(String label, String value) {
