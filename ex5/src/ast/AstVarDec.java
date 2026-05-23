@@ -10,8 +10,8 @@ public class AstVarDec extends AstDec {
     public String name;
     public String unique_name;
     public AstExp exp;
-    private int caseType;
-    private Temp temp;
+    public int caseType;       // 1: LOCAL/PARAM (stack), 2: FIELD, 3: GLOBAL
+    public int slotIndex = -1; // for caseType==1: stack slot offset (in words)
 
     public AstVarDec(AstType type, String name, AstExp exp, int lineNum) {
         serialNumber = AstNodeSerialNumber.getFresh();
@@ -19,7 +19,6 @@ public class AstVarDec extends AstDec {
         this.name = name;
         this.exp = exp;
         this.line = lineNum;
-        this.temp = null;
     }
 
     @Override
@@ -35,9 +34,8 @@ public class AstVarDec extends AstDec {
     public Type semantMe() {
         SymbolTable sym = SymbolTable.getInstance();
         if (sym.currentScopeLevel == 0) this.caseType = 3; // GLOBAL
-        // Level 1 inside a class means it's a field
         else if (sym.getCurrentClass() != null && sym.currentScopeLevel == 1) this.caseType = 2; // FIELD
-        else this.caseType = 1; // LOCAL
+        else this.caseType = 1; // LOCAL/PARAM
 
         Type varType = SymbolTable.getInstance().find(type.name);
         if (varType == null) {
@@ -64,10 +62,15 @@ public class AstVarDec extends AstDec {
         SymbolTableEntry entry = SymbolTable.getInstance().findEntry(name);
         this.unique_name = name + "@" + entry.scopeLevel;
 
-        // Assign a Temp only for local variables (non-global, non-field) TODO: This probably also assigns to fields.
-        if (SymbolTable.getInstance().currentScopeLevel > 0) {
-            entry.temp = TempFactory.getInstance().getFreshTemp();
-            this.temp = entry.temp;
+        // Stack slot for locals/params. slotIndex is a signed offset from $fp.
+        if (this.caseType == 1) {
+            TypeFunction currentFunc = sym.getCurrentFunction();
+            if (currentFunc != null) {
+                this.slotIndex = currentFunc.processingParams
+                    ? currentFunc.allocateParamSlot()
+                    : currentFunc.allocateLocalSlot();
+                entry.slotIndex = this.slotIndex;
+            }
         }
         return varType;
     }
@@ -95,12 +98,20 @@ public class AstVarDec extends AstDec {
                 Ir.getInstance().AddIrCommand(new IrCommandStoreGlobal(name, exp.irMe()));
                 Ir.getInstance().activeList = Ir.getInstance().commands;
             }
-        } else { // TODO: Do I need to add case for class variable? Or is it not relevant to initialization?
-            // Ir.getInstance().AddIrCommand(new IrCommandAllocateLocal(name)); (TODO)
+        } else if (this.caseType == 2 /* class field */) {
+            // Field layout & per-instance init handled in AstNewExp.
+        } else { // LOCAL/PARAM
+            // Initialize slot to user's value if given, otherwise to 0
+            // (which is also nil for refs).
+            Temp src;
             if (exp != null) {
-                Ir.getInstance().AddIrCommand(new IrCommandMove(this.temp, exp.irMe()));
+                src = exp.irMe();
+            } else {
+                src = TempFactory.getInstance().getFreshTemp();
+                Ir.getInstance().AddIrCommand(new IrCommandConstInt(src, 0));
             }
+            Ir.getInstance().AddIrCommand(new IrCommandStoreLocal(src, this.slotIndex));
         }
-        return this.temp; // Returns null for global vairables/fields.
+        return null;
     }
 }

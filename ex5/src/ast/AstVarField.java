@@ -1,10 +1,16 @@
 package ast;
 
+import ir.*;
+import temp.*;
 import types.*;
 
 public class AstVarField extends AstVar {
     public AstVar var;
     public String fieldName;
+
+    // Cached during semantMe so irMe doesn't need to re-resolve.
+    private TypeClass baseType;
+    private int fieldOffset;
 
     public AstVarField(AstVar var, String fieldName, int lineNum) {
         serialNumber = AstNodeSerialNumber.getFresh();
@@ -38,6 +44,32 @@ public class AstVarField extends AstVar {
             throw new SemanticError(line, "undefined field: " + fieldName);
         }
 
+        // Cache for codegen.
+        this.baseType = classType;
+        this.fieldOffset = classType.getFieldOffset(fieldName);
+
         return fieldType;
+    }
+
+    public int getFieldOffset() { return fieldOffset; }
+
+    // Load `obj.field`: nil-check the receiver, then lw at the cached offset.
+    public Temp doLoad() {
+        Temp base = var.irMe();
+        Ir.getInstance().AddIrCommand(new IrCommandNilCheck(base));
+        Temp dst = TempFactory.getInstance().getFreshTemp();
+        Ir.getInstance().AddIrCommand(new IrCommandLoadField(dst, base, fieldOffset));
+        return dst;
+    }
+
+    public void doStore(Temp src) {
+        Temp base = var.irMe();
+        Ir.getInstance().AddIrCommand(new IrCommandNilCheck(base));
+        Ir.getInstance().AddIrCommand(new IrCommandStoreField(src, base, fieldOffset));
+    }
+
+    @Override
+    public Temp irMe() {
+        return doLoad();
     }
 }

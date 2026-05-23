@@ -43,6 +43,14 @@ public class Ir {
         Ir.getInstance().AddIrCommand(new IrCommandPrintString(accessViolationMsg));
         Ir.getInstance().AddIrCommand(new IrCommandExit());
         Ir.getInstance().AddIrCommand(new IrCommandFuncEnd(MipsGenerator.LABEL_ACCESS_VIOLATION));
+
+        // ILLEGAL DIV BY ZERO
+        Ir.getInstance().AddIrCommand(new IrCommandFuncStart(MipsGenerator.LABEL_DIV0));
+        Temp div0Msg = TempFactory.getInstance().getFreshTemp();
+        Ir.getInstance().AddIrCommand(new IrCommandLoadAddress(div0Msg, MipsGenerator.STRING_DIV0));
+        Ir.getInstance().AddIrCommand(new IrCommandPrintString(div0Msg));
+        Ir.getInstance().AddIrCommand(new IrCommandExit());
+        Ir.getInstance().AddIrCommand(new IrCommandFuncEnd(MipsGenerator.LABEL_DIV0));
     }
 
     public void finalizePrintIntCode() {
@@ -89,11 +97,22 @@ public class Ir {
         Ir ir = Ir.getInstance();
         TempFactory tf = TempFactory.getInstance();
         Temp dst = tf.getFreshTemp(), len = tf.getFreshTemp();
+        Temp byteSize = tf.getFreshTemp();
+        Temp one = tf.getFreshTemp();
+        Temp four = tf.getFreshTemp();
 
-        // strLen
         ir.AddIrCommand(new IrCommandFuncStart(MipsGenerator.LABEL_ALLOC_ARRAY));
         ir.AddIrCommand(new IrCommandMoveFromReg("$a0", len));
-        ir.AddIrCommand(new IrCommandCall(dst, null, MipsGenerator.LABEL_MALLOC, new Temp[]{len}));
+        // Out-of-bounds includes len <= 0 at runtime.
+        ir.AddIrCommand(new IrCommandBoundsCheckLength(len));
+        // byteSize = (len + 1) * 4   — slot 0 holds the length itself.
+        ir.AddIrCommand(new IrCommandConstInt(one, 1));
+        ir.AddIrCommand(new IrCommandConstInt(four, 4));
+        ir.AddIrCommand(new IrCommandBinopAddIntegers(byteSize, len, one));
+        ir.AddIrCommand(new IrCommandBinopMulIntegers(byteSize, byteSize, four));
+        ir.AddIrCommand(new IrCommandCall(dst, null, MipsGenerator.LABEL_MALLOC, new Temp[]{byteSize}));
+        // Store the length at dst[0] so subsequent bounds checks can read it.
+        ir.AddIrCommand(new IrCommandStoreAt(dst, len));
         ir.AddIrCommand(new IrCommandReturn(dst));
         ir.AddIrCommand(new IrCommandFuncEnd(MipsGenerator.LABEL_ALLOC_ARRAY));
     }
@@ -126,6 +145,22 @@ public class Ir {
         ir.AddIrCommand(new IrCommandStrCopy(dst, arg1));
         ir.AddIrCommand(new IrCommandReturn(null));
         ir.AddIrCommand(new IrCommandFuncEnd(MipsGenerator.LABEL_STRCOPY));
+    }
+
+    // Spec §2.1: `=` on two strings tests contents equality.
+    public void finalizeStrEqCode() {
+        Ir ir = Ir.getInstance();
+        TempFactory tf = TempFactory.getInstance();
+        Temp dst = tf.getFreshTemp(), s1 = tf.getFreshTemp(), s2 = tf.getFreshTemp();
+
+        ir.AddIrCommand(new IrCommandFuncStart(MipsGenerator.LABEL_STR_EQ));
+        ir.AddIrCommand(new IrCommandMoveFromReg("$a0", s1));
+        ir.AddIrCommand(new IrCommandMoveFromReg("$a1", s2));
+        ir.AddIrCommand(new IrCommandNilCheck(s1));
+        ir.AddIrCommand(new IrCommandNilCheck(s2));
+        ir.AddIrCommand(new IrCommandStrEq(dst, s1, s2));
+        ir.AddIrCommand(new IrCommandReturn(dst));
+        ir.AddIrCommand(new IrCommandFuncEnd(MipsGenerator.LABEL_STR_EQ));
     }
 
     // Logic inside IrCommandBinopAddStrings or the caller
@@ -183,6 +218,7 @@ public class Ir {
         finalizeAllocArrayCode();
         finalizeStrlenCode();
         finalizeStrcpyCode();
+        finalizeStrEqCode();
         finalizeStringConcatCode();
         finalizeErrorCode();
         List<IrCommand> masterList = new ArrayList<>();
@@ -194,18 +230,21 @@ public class Ir {
         masterList.add(new IrCommandStringLabel(MipsGenerator.STRING_INV_PTR, "\"Invalid Pointer Dereference\""));
         masterList.addAll(globalDecls);
 
-        // 2. Text Segment & Entry Point
+        // 2. Text Segment & Entry Point.
+        // SPIM enters at `main`, so the runtime block (global init + jal user main + exit)
+        // is what's actually labelled `main`. The user's source-level main is renamed to
+        // `_user_main` in AstFuncDec.irMe.
         masterList.add(new IrCommandSegmentLabel("text"));
-        masterList.add(new IrCommandFuncEnd("initialization_section")); // Used to add the initializaion part to the IrCommandList.
-        masterList.add(new IrCommandFuncStart("_start"));
-        
+        masterList.add(new IrCommandFuncEnd("initialization_section"));
+        masterList.add(new IrCommandFuncStart("main"));
+
         // 3. Global Initializations
         masterList.addAll(globalInits);
 
-        // 4. Main Call & Exit
-        masterList.add(new IrCommandCall(null, null, "main", new Temp[]{}));
+        // 4. User Main Call & Exit
+        masterList.add(new IrCommandCall(null, null, "_user_main", new Temp[]{}));
         masterList.add(new IrCommandExit());
-        masterList.add(new IrCommandFuncEnd("_start"));
+        masterList.add(new IrCommandFuncEnd("main"));
 
         // 5. Everything else (functions, etc.)
         masterList.addAll(commands);

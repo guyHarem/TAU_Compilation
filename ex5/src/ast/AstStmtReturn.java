@@ -115,9 +115,9 @@ public class AstStmtReturn extends AstStmt
 	@Override
 	public Temp irMe() {
 		Temp t = null;
-		if (exp != null) t = exp.irMe(); // If the function is not void, evaluate the return expression
-		Ir.getInstance().AddIrCommand(new IrCommandReturn(t));
-		// if (!this.funcName.equals("main")) 
-		return null; 
+		if (exp != null) t = exp.irMe();
+		TypeFunction funcType = SymbolTable.getInstance().getCurrentFunction();
+		Ir.getInstance().AddIrCommand(new IrCommandReturn(t, funcType));
+		return null;
 	}
 }

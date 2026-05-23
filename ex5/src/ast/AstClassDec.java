@@ -1,5 +1,7 @@
 package ast;
 
+import ir.*;
+import temp.*;
 import types.*;
 import symboltable.*;
 
@@ -63,7 +65,7 @@ public class AstClassDec extends AstDec {
         /******************************************/
         /* [4] Begin class scope                  */
         /******************************************/
-        SymbolTable.getInstance().beginScope();
+        SymbolTable.getInstance().beginClassScope();
 
         /******************************************/
         /* [5] Process fields and methods         */
@@ -153,9 +155,32 @@ public class AstClassDec extends AstDec {
                     Type fieldType = it.head.semantMe();
                     // Add to class member map
                     if (it.head instanceof AstVarDec) {
-                        classType.addMember(((AstVarDec)it.head).name, fieldType);
+                        AstVarDec vd = (AstVarDec) it.head;
+                        classType.addMember(vd.name, fieldType);
+                        // Record any literal init so AstNewExp can write it at construction.
+                        if (vd.exp != null) {
+                            TypeClass.FieldInit fi = new TypeClass.FieldInit();
+                            fi.offset = classType.getFieldOffset(vd.name);
+                            if (vd.exp instanceof AstExpInt) {
+                                fi.intValue = ((AstExpInt) vd.exp).value;
+                            } else if (vd.exp instanceof AstExpString) {
+                                fi.stringLabel = ((AstExpString) vd.exp).value;
+                            }
+                            // nil init: leave both null; malloc already zero-fills.
+                            classType.fieldInits.add(fi);
+                        }
                     } else if (it.head instanceof AstFuncDec) {
                         classType.addMember(((AstFuncDec)it.head).name, fieldType);
+                        // Inherited overrides reuse the parent's slot; new methods append.
+                        // Label uses the same `_user_` prefix as AstFuncDec.irMe.
+                        String mangled = "_user_" + name + "_" + memberName;
+                        if (classType.methodIndex.containsKey(memberName)) {
+                            classType.methodLabel.put(memberName, mangled);
+                        } else {
+                            int slot = classType.methodIndex.size();
+                            classType.methodIndex.put(memberName, slot);
+                            classType.methodLabel.put(memberName, mangled);
+                        }
                     }
                 }
             }
@@ -172,5 +197,27 @@ public class AstClassDec extends AstDec {
         SymbolTable.getInstance().setCurrentClass(null);
 
         return classType;
+    }
+
+    @Override
+    public Temp irMe() {
+        Type t = SymbolTable.getInstance().find(name);
+        if (!(t instanceof TypeClass)) return null;
+        TypeClass classType = (TypeClass) t;
+
+        // Vtable goes into .data via globalDecls.
+        Ir.getInstance().AddIrGlobalDecleration(new IrCommandVtable(name, classType.getVtableLabels()));
+
+        // Methods need currentClass set so AstFuncDec.irMe mangles labels as Class_method.
+        SymbolTable.getInstance().setCurrentClass(classType);
+        if (fields != null) {
+            for (AstList<AstDec> it = fields; it != null; it = it.tail) {
+                if (it.head instanceof AstFuncDec) {
+                    it.head.irMe();
+                }
+            }
+        }
+        SymbolTable.getInstance().setCurrentClass(null);
+        return null;
     }
 }

@@ -14,9 +14,11 @@ public class Main
 		Symbol s;
 		AstProgram ast;
 		FileReader fileReader;
-		PrintWriter fileWriter;
 		String inputFileName = argv[0];
-		// String outputFileName = argv[1];
+		String outputFileName = argv[1];
+
+		// Set output path before MipsGenerator's singleton is touched.
+		MipsGenerator.outputPath = outputFileName;
 
 		try
 		{
@@ -24,11 +26,6 @@ public class Main
 			/* [1] Initialize a file reader */
 			/********************************/
 			fileReader = new FileReader(inputFileName);
-
-			// /********************************/
-			// /* [2] Initialize a file writer */
-			// /********************************/
-			// fileWriter = new PrintWriter(outputFileName);
 
 			/******************************/
 			/* [3] Initialize a new lexer */
@@ -75,11 +72,6 @@ public class Main
 			/* [11] Finalize MIPS file */
 			/***************************/
 			MipsGenerator.getInstance().finalizeFile();
-
-			// /**************************/
-			// /* [12] Close output file */
-			// /**************************/
-			// fileWriter.close();
 		}
 
 		catch (Exception e)

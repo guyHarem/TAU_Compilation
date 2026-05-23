@@ -47,7 +47,6 @@ public class AstExpString extends AstExp
 
 	@Override
 	public Temp irMe() {
-		System.out.println("Debug: IR Gen for " + this.getClass().getSimpleName());
 		String label = IrCommand.getFreshAnonymousLabel();
 
 		// Add the string to the global data collection

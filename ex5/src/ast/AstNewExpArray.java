@@ -64,14 +64,11 @@ public class AstNewExpArray extends AstNewExp {
 
     @Override
     public Temp irMe() {
-        System.out.println("Debug: IR Gen for " + this.getClass().getSimpleName());
         Temp size = exp.irMe();
-        // Allocate memory. We add 1 word to store the length at index 0
         Temp address = TempFactory.getInstance().getFreshTemp();
+        // label_alloc_array does the (size+1)*4 byte allocation, the size>0 check,
+        // stores length at offset 0, and zero-fills the data area.
         Ir.getInstance().AddIrCommand(new IrCommandCall(address, null, MipsGenerator.LABEL_ALLOC_ARRAY, new Temp[]{size}));
-        // Store the length at the start of the allocated block
-        Ir.getInstance().AddIrCommand(new IrCommandStoreAt(address, size));
-
         return address;
     }
 }
