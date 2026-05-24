@@ -75,7 +75,23 @@ public class Main
 
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			// e.printStackTrace();try {
+			try {
+				PrintWriter writer = new PrintWriter(outputFileName);
+				
+				if (e instanceof SemanticError) {
+					// Note: Make sure your SemanticError.java class has a public 'line' field
+					writer.print("ERROR(" + ((SemanticError)e).line + ")");
+				} else if (e.getMessage() != null && e.getMessage().startsWith("ERROR")) {
+					writer.print(e.getMessage());
+				} else {
+					writer.print("ERROR");
+				}
+				
+				writer.close();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
 		}
 	}
 }

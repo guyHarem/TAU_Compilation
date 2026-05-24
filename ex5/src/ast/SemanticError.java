@@ -5,7 +5,7 @@ package ast;
  * Contains the line number where the error occurred.
  */
 public class SemanticError extends RuntimeException {
-    private int line;
+    public int line;
 
     public SemanticError(int line, String message) {
         super(message);

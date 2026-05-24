@@ -20,8 +20,17 @@ parser code
     
     public void report_error(String message, Object info)
     {
-        System.out.println("ERROR(" + lexer.getLine() + ")");
-        System.exit(0);
+        // System.out.println("ERROR(" + lexer.getLine() + ")");
+        // System.exit(0);
+        
+        // If the error was caused by the lexer passing an ERROR token, it's a lexical error
+        if (info instanceof java_cup.runtime.Symbol && ((java_cup.runtime.Symbol)info).sym == TokenNames.ERROR) {
+                throw new RuntimeException("ERROR");
+        } 
+        // Otherwise, it's a standard syntax error
+        else {
+                throw new RuntimeException("ERROR(" + lexer.getLine() + ")");
+        }
     }
 :}
 
@@ -35,8 +44,9 @@ scan with
         s = lexer.next_token();
     } catch (RuntimeException e) {
         if (e.getMessage() != null && e.getMessage().equals("LEX_ERROR")) {
-            System.out.println("ERROR");
-            System.exit(0);
+        //     System.out.println("ERROR");
+        //     System.exit(0);
+                throw new RuntimeException("ERROR");
         }
         throw e;
     }

@@ -153,7 +153,7 @@ BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
 ";"					{ return symbol(TokenNames.SEMICOLON, "SEMICOLON[" + getLine() + "," + getTokenStartPosition() + "]"); }
 
 /* Invalid numbers with leading zeros - MUST COME BEFORE INTEGER!*/
-{INVALID_NUMBER}	{return symbol(TokenNames.ERROR, "ERROR");}
+{INVALID_NUMBER}	{ throw new RuntimeException("ERROR"); }
 
 /* Integers - validate range */
 {INTEGER}			{
@@ -164,14 +164,14 @@ BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
 							}
 							return symbol(TokenNames.INT, val);
 						} catch (NumberFormatException e) { //Either number it too large for Java, or exeecds L language limit
-							return symbol(TokenNames.ERROR, "ERROR");
+							throw new RuntimeException("ERROR");
 						}
 }
 
 /* Strings */
 {STRING}			{ return symbol(TokenNames.STRING, yytext()); }
 
-// {INVALID_STRING}	{return symbol(TokenNames.ERROR, "ERROR");}
+// {INVALID_STRING}	{throw new RuntimeException("ERROR");}
 
 /* Identifiers - must come after keywords */
 {IDENTIFIER}		{ return symbol(TokenNames.ID, yytext()); }
@@ -184,7 +184,7 @@ BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
 <<EOF>>             { return symbol(TokenNames.EOF); }
 
 /* Error - anything else is a lexical error */
-.					{ return symbol(TokenNames.ERROR, "ERROR"); }
+.					{ throw new RuntimeException("ERROR"); }
 
 }
 
@@ -192,6 +192,6 @@ BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
 <BLOCK_COMMENT_STATE> {
     "*/"                    { yybegin(YYINITIAL); } /* End comment: switch back to code */
     {BLOCK_COMMENT_CHAR}    { /* Valid char: ignore */ }
-    <<EOF>>                 { return symbol(TokenNames.ERROR, "ERROR"); } /* Unclosed comment error */
-    .                       { return symbol(TokenNames.ERROR, "ERROR"); } /* Invalid char error */
+    <<EOF>>                 { throw new RuntimeException("ERROR"); } /* Unclosed comment error */
+    .                       { throw new RuntimeException("ERROR"); } /* Invalid char error */
 }
