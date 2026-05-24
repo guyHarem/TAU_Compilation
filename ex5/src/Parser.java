@@ -7,6 +7,7 @@ import java_cup.runtime.*;
 import ast.*;
 import java.util.*;
 import java.io.PrintWriter;
+import mips.MipsGenerator;
 import java_cup.runtime.XMLElement;
 
 /** CUP v0.11b 20160615 (GIT 4ac7450) generated parser.
@@ -339,12 +340,15 @@ public class Parser extends java_cup.runtime.lr_parser {
         s = lexer.next_token();
     } catch (RuntimeException e) {
         if (e.getMessage() != null && e.getMessage().equals("LEX_ERROR")) {
-            System.out.println("ERROR");
-            System.exit(0);
+            MipsGenerator.writeOutputAndExit("ERROR");
         }
         throw e;
     }
-    
+    if (s != null && s.sym == TokenNames.ERROR) {
+        // Lex error: bad character / unterminated comment / etc.
+        MipsGenerator.writeOutputAndExit("ERROR");
+    }
+
     this.lastTokenLine = lexer.getLine();
     return s;
 
@@ -360,11 +364,10 @@ public class Parser extends java_cup.runtime.lr_parser {
         this.lexer = lexer;
         this.lastTokenLine = 0;
     }
-    
+
     public void report_error(String message, Object info)
     {
-        System.out.println("ERROR(" + lexer.getLine() + ")");
-        System.exit(0);
+        MipsGenerator.writeOutputAndExit("ERROR(" + lexer.getLine() + ")");
     }
 
 

@@ -20,7 +20,8 @@ public class Main
 		// Set output path before MipsGenerator's singleton is touched.
 		MipsGenerator.outputPath = outputFileName;
 
-		try {
+		try
+		{
 			/********************************/
 			/* [1] Initialize a file reader */
 			/********************************/
@@ -49,7 +50,11 @@ public class Main
 			/**************************/
 			/* [7] Semant the AST ... */
 			/**************************/
-			ast.semantMe();
+			try {
+				ast.semantMe();
+			} catch (SemanticError se) {
+				MipsGenerator.writeOutputAndExit("ERROR(" + se.getLine() + ")");
+			}
 
 			/**********************/
 			/* [8] Ir the AST ... */

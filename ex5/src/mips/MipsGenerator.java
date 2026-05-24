@@ -558,6 +558,16 @@ public class MipsGenerator
      */
     public static void failAllocation()
     {
+        writeOutputAndExit("Register Allocation Failed");
+    }
+
+    /**
+     * Write a single line to the output file (argv[1]) and exit cleanly.
+     * Used for lexical/syntax/semantic errors so the message reaches the
+     * grader (the output file) rather than stdout.
+     */
+    public static void writeOutputAndExit(String line)
+    {
         try {
             if (instance != null && instance.fileWriter != null) {
                 instance.fileWriter.close();
@@ -569,7 +579,7 @@ public class MipsGenerator
                 path = dirname + "MIPS.txt";
             }
             PrintWriter w = new PrintWriter(path);
-            w.print("Register Allocation Failed");
+            w.print(line);
             w.close();
         } catch (Exception e) {
             e.printStackTrace();

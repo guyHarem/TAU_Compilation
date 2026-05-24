@@ -79,18 +79,17 @@ IDENTIFIER		= [a-zA-Z][a-zA-Z0-9]*
 STRING_TEXT		= [a-zA-Z]*
 STRING			= \"{STRING_TEXT}\"
 // INVALID_STRING	= \"[^\"]*\"  // Any string that contains any character (invalid strings will be caught)
-DOLLAR_SIGN  	= \$
 
 /* Comment characters: letters, digits, white spaces, ( ) [ ] { } ? ! + - * / . ; */
 
 /* For line comments: everything except newlines */
 LINE_COMMENT_CHAR = [a-zA-Z0-9 \t()\[\]{}?!+\-*\/.;]
-LINE_COMMENT    = "//" {LINE_COMMENT_CHAR}* {LineTerminator} //ADDED LINE TERMINATOR
 
 /* For block comments: everything including newlines */
 BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
 
-/* Define a new state for handling block comments */
+/* States for handling comments — invalid chars inside become lex errors */
+%state LINE_COMMENT_STATE
 %state BLOCK_COMMENT_STATE
 
 /******************************/
@@ -114,8 +113,8 @@ BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
 /* Start of block comment -> Switch to COMMENT state */
     "/*"            { yybegin(BLOCK_COMMENT_STATE); }
 
-    /* Line comments - ignored */
-    {LINE_COMMENT}	{ /* just skip, do nothing */ }
+    /* Start of line comment -> Switch to LINE_COMMENT state */
+    "//"            { yybegin(LINE_COMMENT_STATE); }
 
 /* Keywords - must come before IDENTIFIER */
 "class"				{ return symbol(TokenNames.CLASS, "CLASS[" + getLine() + "," + getTokenStartPosition() + "]"); }
@@ -180,7 +179,6 @@ BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
 {WhiteSpace}		{ /* just skip what was found, do nothing */ }
 
 /* End of file */
-{DOLLAR_SIGN}		{ return symbol(TokenNames.EOF); }
 <<EOF>>             { return symbol(TokenNames.EOF); }
 
 /* Error - anything else is a lexical error */
@@ -194,4 +192,12 @@ BLOCK_COMMENT_CHAR = [a-zA-Z0-9 \t\r\n()\[\]{}?!+\-*\/.;]
     {BLOCK_COMMENT_CHAR}    { /* Valid char: ignore */ }
     <<EOF>>                 { return symbol(TokenNames.ERROR, "ERROR"); } /* Unclosed comment error */
     .                       { return symbol(TokenNames.ERROR, "ERROR"); } /* Invalid char error */
+}
+
+/* LINE COMMENT STATE RULES */
+<LINE_COMMENT_STATE> {
+    {LineTerminator}        { yybegin(YYINITIAL); } /* End of comment: back to code */
+    {LINE_COMMENT_CHAR}      { /* Valid char: ignore */ }
+    <<EOF>>                 { yybegin(YYINITIAL); return symbol(TokenNames.EOF); }
+    .                       { return symbol(TokenNames.ERROR, "ERROR"); } /* Invalid char in comment */
 }
