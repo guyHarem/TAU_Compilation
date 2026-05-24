@@ -569,7 +569,7 @@ public class MipsGenerator
                 path = dirname + "MIPS.txt";
             }
             PrintWriter w = new PrintWriter(path);
-            w.println("Register Allocation Failed");
+            w.print("Register Allocation Failed");
             w.close();
         } catch (Exception e) {
             e.printStackTrace();
