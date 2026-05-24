@@ -11,6 +11,9 @@ public class AstCallExp extends AstExp {
     public Type retType;
     public String funcName;
     public AstList<AstExp> args;
+    // Cached during semantMe so irMe can pick the right method slot without re-running semant.
+    private TypeClass receiverClass;
+    private int methodSlot;
 
     public AstCallExp(AstVar var, String funcName, AstList<AstExp> args, int lineNum) {
         serialNumber = AstNodeSerialNumber.getFresh();
@@ -42,13 +45,15 @@ public class AstCallExp extends AstExp {
             if (!(varType instanceof TypeClass)) {
                 throw new SemanticError(line, "method call on non-class type");
             }
-            Type memberType = ((TypeClass)varType).findMember(funcName);
+            this.receiverClass = (TypeClass) varType;
+            Type memberType = receiverClass.findMember(funcName);
             if (memberType == null) {
                 throw new SemanticError(line, "undefined method: " + funcName);
             }
             if (!(memberType instanceof TypeFunction)) {
                 throw new SemanticError(line, funcName + " is not a method");
             }
+            this.methodSlot = receiverClass.getMethodIndex(funcName);
             funcType = (TypeFunction) memberType;
         } else {
             // Function call: funcName(args)
@@ -141,34 +146,74 @@ public class AstCallExp extends AstExp {
     }
 
     public Temp irMe() {
-        System.out.println("[DEBUG] AstCallExp func: " + this.funcName);
         Temp retval;
-        Temp varTemp = (this.var == null ? null : this.var.irMe());
+        SymbolTable sym = SymbolTable.getInstance();
 
-        // Evaluate arguments Left-to-Right
+        // Library calls are flat externals.
+        boolean isPrintInt    = (this.var == null && this.funcName.equals("PrintInt"));
+        boolean isPrintString = (this.var == null && this.funcName.equals("PrintString"));
+
+        if (this.var != null) {
+            // Method call: var.funcName(args) — virtual dispatch via vtable.
+            int slot = this.methodSlot;
+
+            Temp recv = this.var.irMe();
+            Ir.getInstance().AddIrCommand(new IrCommandNilCheck(recv));
+
+            int numArgs = 0;
+            for (AstList<AstExp> it = this.args; it != null; it = it.tail) numArgs++;
+            Temp[] argTemps = new Temp[numArgs];
+            int i = 0;
+            for (AstList<AstExp> it = this.args; it != null; it = it.tail) argTemps[i++] = it.head.irMe();
+
+            if (this.retType != null && this.retType.name.equals("void")) retval = null;
+            else retval = TempFactory.getInstance().getFreshTemp();
+
+            Ir.getInstance().AddIrCommand(new IrCommandCallVirtual(retval, recv, slot, argTemps));
+            return retval;
+        }
+
+        // No explicit receiver: free function, library call, or implicit `this.foo()`.
         int numArgs = 0;
         for (AstList<AstExp> it = this.args; it != null; it = it.tail) numArgs++;
         Temp[] argTemps = new Temp[numArgs];
         int i = 0;
-        for (AstList<AstExp> it = this.args; it != null; it = it.tail) {
-            argTemps[i++] = it.head.irMe();
-        }
+        for (AstList<AstExp> it = this.args; it != null; it = it.tail) argTemps[i++] = it.head.irMe();
 
-        // Handle Library syscalls
-        if (this.funcName.equals("PrintInt")) {
+        if (isPrintInt) {
             Ir.getInstance().AddIrCommand(new IrCommandCall(null, null, MipsGenerator.LABEL_PRINT_INT, argTemps));
-            return null; // PrintInt is void
+            return null;
         }
-        if (this.funcName.equals("PrintString")) {
+        if (isPrintString) {
             Ir.getInstance().AddIrCommand(new IrCommandCall(null, null, MipsGenerator.LABEL_PRINT_STRING, argTemps));
-            return null; // PrintString is void
+            return null;
         }
 
-        // General Function/Method Call
-        // TODO: Check if void.
-        if (this.retType.name.equals("void")) retval = null;
+        // Inside a class, an unqualified call to a member function is implicit `this.foo()` —
+        // dispatch virtually so overrides work.
+        TypeClass currentClass = sym.getCurrentClass();
+        String label = this.funcName;
+        if (currentClass != null) {
+            Type maybeMember = currentClass.findMember(funcName);
+            if (maybeMember instanceof TypeFunction) {
+                int slot = currentClass.getMethodIndex(funcName);
+                Temp recv = sym.currThis;
+                Ir.getInstance().AddIrCommand(new IrCommandNilCheck(recv));
+                if (this.retType != null && this.retType.name.equals("void")) retval = null;
+                else retval = TempFactory.getInstance().getFreshTemp();
+                Ir.getInstance().AddIrCommand(new IrCommandCallVirtual(retval, recv, slot, argTemps));
+                return retval;
+            }
+        }
+
+        // Top-level free function. The `_user_` prefix avoids collisions with
+        // SPIM reserved opcodes (`add`, `sub`, etc.).
+        if (label.equals("main")) label = "_user_main";
+        else label = "_user_" + label;
+
+        if (this.retType != null && this.retType.name.equals("void")) retval = null;
         else retval = TempFactory.getInstance().getFreshTemp();
-        Ir.getInstance().AddIrCommand(new IrCommandCall(retval, varTemp, this.funcName, argTemps));
-        return retval; 
+        Ir.getInstance().AddIrCommand(new IrCommandCall(retval, null, label, argTemps));
+        return retval;
     }
 }

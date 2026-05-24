@@ -3,6 +3,7 @@ package ir;
 import java.util.*;
 import temp.*;
 import cfg.*;
+import mips.MipsGenerator;
 
 public class RegAlloc {
     public static final int K = 10; 
@@ -149,8 +150,8 @@ public class RegAlloc {
             }
 
             if (found == null) {
-                System.out.println("Register Allocation Failed: Spilling required.");
-                System.exit(0);
+                MipsGenerator.failAllocation();
+                return;
             }
 
             stack.push(found);

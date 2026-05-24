@@ -80,12 +80,11 @@ public class SymbolTable
 	/***********************************************/
 	public Type findInCurrentScope(String name)
 	{
-		// Traverse from top down to the nearest SCOPE-BOUNDARY
+		// Traverse from top down to the nearest SCOPE-BOUNDARY (or CLASS-BOUNDARY)
 		for (SymbolTableEntry e = top; e != null; e = e.prevtop)
 		{
-			if (e.name.equals("SCOPE-BOUNDARY"))
+			if (e.name.equals("SCOPE-BOUNDARY") || e.name.equals("CLASS-BOUNDARY"))
 			{
-				// Hit scope boundary - not found in current scope
 				return null;
 			}
 			if (name.equals(e.name))
@@ -97,19 +96,24 @@ public class SymbolTable
 	}
 
 	/***********************************************/
-	/* Find name in all nested scopes (not global) */
-	/* Global scope = entries before any SCOPE-BOUNDARY */
+	/* Find name in nested function/block scopes.  */
+	/* Stops at CLASS-BOUNDARY (fields are not     */
+	/* locals) and at the global boundary.         */
 	/***********************************************/
 	public SymbolTableEntry findEntryExcludingGlobal(String name) {
+        // Count function/block boundaries above (not including the global one),
+        // stopping if a CLASS-BOUNDARY is reached.
         int totalBoundaries = 0;
         for (SymbolTableEntry e = top; e != null; e = e.prevtop) {
-            if (e.name.equals("SCOPE-BOUNDARY")) totalBoundaries++;
+            if ("SCOPE-BOUNDARY".equals(e.name)) totalBoundaries++;
+            else if ("CLASS-BOUNDARY".equals(e.name)) break;
         }
         if (totalBoundaries == 0) return null;
 
         int boundariesCrossed = 0;
         for (SymbolTableEntry e = top; e != null; e = e.prevtop) {
-            if (e.name.equals("SCOPE-BOUNDARY")) {
+            if ("CLASS-BOUNDARY".equals(e.name)) return null;
+            if ("SCOPE-BOUNDARY".equals(e.name)) {
                 boundariesCrossed++;
                 if (boundariesCrossed == totalBoundaries) return null;
                 continue;
@@ -127,24 +131,28 @@ public class SymbolTable
         enter("SCOPE-BOUNDARY", new TypeForScopeBoundaries("NONE"));
     }
 
+    /***************************************************************************/
+    /* Class-scope variant: distinguishable from a function/block scope so      */
+    /* field-name lookups don't masquerade as local-variable lookups. Marked    */
+    /* with the `CLASS-BOUNDARY` sentinel checked by findEntryExcludingGlobal.  */
+    /***************************************************************************/
+    public void beginClassScope() {
+        currentScopeLevel++;
+        enter("CLASS-BOUNDARY", new TypeForScopeBoundaries("CLASS"));
+    }
+
 	/********************************************************************************/
 	/* end scope = Keep popping elements out of the data structure,                 */
 	/* from most recent element entered, until a <NEW-SCOPE> element is encountered */
 	/********************************************************************************/
 	public void endScope()
 	{
-		/**************************************************************************/
-		/* Pop elements from the symbol table stack until a SCOPE-BOUNDARY is hit */
-		/**************************************************************************/
-		while (top != null && !"SCOPE-BOUNDARY".equals(top.name))
+		while (top != null && !"SCOPE-BOUNDARY".equals(top.name) && !"CLASS-BOUNDARY".equals(top.name))
 		{
 			table[top.index] = top.next;
 			topIndex = topIndex -1;
 			top = top.prevtop;
 		}
-		/**************************************/
-		/* Pop the SCOPE-BOUNDARY sign itself */
-		/**************************************/
 		if (top != null) {
 			table[top.index] = top.next;
 			topIndex = topIndex -1;
@@ -152,9 +160,6 @@ public class SymbolTable
 		}
 		currentScopeLevel--;
 
-		/*********************************************/
-		/* Print the symbol table after every change */
-		/*********************************************/
 		printMe();
 	}
 	

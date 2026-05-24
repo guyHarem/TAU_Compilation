@@ -18,6 +18,7 @@ public class SymbolTableEntry {
     public int prevtopIndex;
     public int scopeLevel;
     public Temp temp;
+    public int slotIndex = -1; // for locals/params: stack slot offset (slotIndex * 4 from $sp)
 
     public SymbolTableEntry(
         String name,

@@ -49,32 +49,48 @@ public class IrCommandCall extends IrCommand {
     @Override
     public void mipsMe() {
         RegAlloc ra = RegAlloc.getInstance();
+        MipsGenerator g = MipsGenerator.getInstance();
         List<String> regsToSave = ra.getLiveRegsForCall(this);
-        for (String reg : regsToSave) {
-            MipsGenerator.getInstance().pushReg(reg);
-        }
-        MipsGenerator.getInstance().pushReg("$ra");
 
         Temp[] finalArgs = (receiver != null) ? insert(receiver, args) : args;
-        int argsMemSize  = (finalArgs.length - 4) * 4;
+        int argSpace = (finalArgs.length > 0)
+            ? 16 + Math.max(0, finalArgs.length - 4) * 4
+            : 0;
+        int saveSpace = (regsToSave.size() + 1) * 4; // +1 for $ra
+        int total = argSpace + saveSpace;
+
+        if (total > 0) g.addToSp(-total);
+
+        // Saves go above argSpace (so callee's $fp+8..+20 doesn't overlap them).
+        int saveBase = argSpace;
+        for (int i = 0; i < regsToSave.size(); i++) {
+            g.storeAtReg(regsToSave.get(i), saveBase + i * 4, "$sp");
+        }
+        g.storeAtReg("$ra", saveBase + regsToSave.size() * 4, "$sp");
+
+        // Args 0..3 → $aN, args 4+ → i*4($sp) inside argSpace.
         for (int i = 0; i < finalArgs.length; i++) {
             String physReg = ra.allocation.get(finalArgs[i]);
-            if (i < 4) MipsGenerator.getInstance().moveToReg(String.format("$a%d", i), physReg);
-            else MipsGenerator.getInstance().pushReg(physReg);
+            if (i < 4) {
+                g.moveToReg(String.format("$a%d", i), physReg);
+            } else {
+                g.storeAtReg(physReg, i * 4, "$sp");
+            }
         }
 
-        MipsGenerator.getInstance().jal(label);
+        g.jal(label);
 
-        // These have to be the first operations after return, because they ignore register allocation.
-        MipsGenerator.getInstance().popReg("$ra");
+        // Restore $ra and saved regs.
+        g.loadFromReg("$ra", saveBase + regsToSave.size() * 4, "$sp");
         for (int i = regsToSave.size() - 1; i >= 0; i--) {
-            MipsGenerator.getInstance().popReg(regsToSave.get(i));
+            g.loadFromReg(regsToSave.get(i), saveBase + i * 4, "$sp");
         }
+
+        if (total > 0) g.addToSp(total);
 
         if (dst != null) {
             String destPhysReg = ra.allocation.get(dst);
-            MipsGenerator.getInstance().moveFromReg("$v0", destPhysReg);
+            g.moveFromReg("$v0", destPhysReg);
         }
-        if (argsMemSize > 0 /* If we actually used mem for args */) MipsGenerator.getInstance().addToSp(argsMemSize);
     }
 }

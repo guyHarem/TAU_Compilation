@@ -51,21 +51,17 @@ public class AstVarSubscript extends AstVar {
     }
 
     public Temp doLoad() {
-        System.out.println("AstVarSubscript: Base type is " + var.getClass().getSimpleName());
-
         Temp base = var.irMe();
         Temp index = subscript.irMe();
         Ir.getInstance().AddIrCommand(new IrCommandNilCheck(base));
         Ir.getInstance().AddIrCommand(new IrCommandBoundsCheck(base, index));
-        
+
         Temp result = TempFactory.getInstance().getFreshTemp();
         Ir.getInstance().AddIrCommand(new IrCommandLoadArray(result, base, index));
         return result;
     }
 
     public void doStore(Temp src) {
-        System.out.println("AstVarSubscript: Base type is " + var.getClass().getSimpleName());
-
         Temp base = var.irMe();
         Temp index = subscript.irMe();
         Ir.getInstance().AddIrCommand(new IrCommandNilCheck(base));

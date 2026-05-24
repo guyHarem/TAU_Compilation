@@ -10,7 +10,8 @@ public class AstExpBinop extends AstExp
 	int op;
 	public AstExp left;
 	public AstExp right;
-	private int opType; // 0 - int _op_ int. 1 - string _op_ string. 2 - class/object _op_ class/object (?).
+	private int opType; // 0 = int op int, 1 = string op string, 2 = class/array op
+	private boolean isStringEq; // op==6 with both operands of type string
 	
 	/******************/
 	/* CONSTRUCTOR(S) */
@@ -137,6 +138,7 @@ public class AstExpBinop extends AstExp
 			}
 			// string = string (per spec Table 8, Example 4)
 			if (t1 == TypeString.getInstance() && t2 == TypeString.getInstance()) {
+				this.isStringEq = true;
 				return TypeInt.getInstance();
 			}
 			// nil with class or array
@@ -207,32 +209,33 @@ public class AstExpBinop extends AstExp
             // Map op IDs to corresponding IR commands
             switch (op) {
                 case 0:
-                    // Addition
                     Ir.getInstance().AddIrCommand(new IrCommandBinopAddIntegers(dst, t1, t2));
+                    Ir.getInstance().AddIrCommand(new IrCommandClamp(dst));
                     break;
                 case 1:
-                    // Subtraction - Missing in your previous version
                     Ir.getInstance().AddIrCommand(new IrCommandBinopSubIntegers(dst, t1, t2));
+                    Ir.getInstance().AddIrCommand(new IrCommandClamp(dst));
                     break;
                 case 2:
-                    // Multiplication
                     Ir.getInstance().AddIrCommand(new IrCommandBinopMulIntegers(dst, t1, t2));
+                    Ir.getInstance().AddIrCommand(new IrCommandClamp(dst));
                     break;
                 case 3:
-                    // Division - Note: semantMe uses 3 for Division, but your previous irMe used 3 for Equality
                     Ir.getInstance().AddIrCommand(new IrCommandBinopDivIntegers(dst, t1, t2));
+                    Ir.getInstance().AddIrCommand(new IrCommandClamp(dst));
                     break;
                 case 4:
-                    // Less Than
                     Ir.getInstance().AddIrCommand(new IrCommandBinopLtIntegers(dst, t1, t2));
                     break;
                 case 5:
-                    // Greater Than - Missing in your previous version
                     Ir.getInstance().AddIrCommand(new IrCommandBinopGtIntegers(dst, t1, t2));
                     break;
                 case 6:
-                    // Equality - In semantMe, 6 is used for EQ
-                    Ir.getInstance().AddIrCommand(new IrCommandBinopEqIntegers(dst, t1, t2));
+                    if (this.isStringEq) {
+                        Ir.getInstance().AddIrCommand(new IrCommandCall(dst, null, MipsGenerator.LABEL_STR_EQ, new Temp[]{t1, t2}));
+                    } else {
+                        Ir.getInstance().AddIrCommand(new IrCommandBinopEqIntegers(dst, t1, t2));
+                    }
                     break;
                 default:
                     throw new UnsupportedOperationException("irMe: BinOp [Integer] IR not implemented for op ID: " + op);

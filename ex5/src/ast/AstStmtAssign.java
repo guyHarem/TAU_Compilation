@@ -1,5 +1,6 @@
 package ast;
 
+import ir.*;
 import temp.*;
 import types.*;
 
@@ -60,15 +61,29 @@ public class AstStmtAssign extends AstStmt {
 
     @Override
     public Temp irMe() {
-        Temp src = exp.irMe();
+        // LHS evaluates first: for arr[i]/obj.field, capture the base/index
+        // BEFORE running the RHS, otherwise side effects in the RHS can
+        // shift the target.
         if (var instanceof AstVarSimple) {
-            AstVarSimple symVar = (AstVarSimple)var;
-            symVar.doStore(src);
+            // Plain locals/globals/this-fields: target is stable, RHS first is fine.
+            Temp src = exp.irMe();
+            ((AstVarSimple) var).doStore(src);
         } else if (var instanceof AstVarSubscript) {
-            AstVarSubscript subVar = (AstVarSubscript) var;
-            subVar.doStore(src);
+            AstVarSubscript v = (AstVarSubscript) var;
+            Temp base  = v.var.irMe();
+            Temp index = v.subscript.irMe();
+            Temp src   = exp.irMe();
+            Ir.getInstance().AddIrCommand(new IrCommandNilCheck(base));
+            Ir.getInstance().AddIrCommand(new IrCommandBoundsCheck(base, index));
+            Ir.getInstance().AddIrCommand(new IrCommandStoreArray(base, index, src));
+        } else if (var instanceof AstVarField) {
+            AstVarField v = (AstVarField) var;
+            Temp base = v.var.irMe();
+            Temp src  = exp.irMe();
+            Ir.getInstance().AddIrCommand(new IrCommandNilCheck(base));
+            Ir.getInstance().AddIrCommand(new IrCommandStoreField(src, base, v.getFieldOffset()));
         } else {
-            throw new UnsupportedOperationException("AstStmtAssign Var type not supported for now");
+            throw new UnsupportedOperationException("AstStmtAssign LHS not supported: " + var.getClass().getSimpleName());
         }
         return null;
     }

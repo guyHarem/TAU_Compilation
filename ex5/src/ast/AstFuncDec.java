@@ -10,6 +10,7 @@ public class AstFuncDec extends AstDec {
     public String name;
     public AstList<AstVarDec> params;
     public AstList<AstStmt> body;
+    public TypeFunction funcType; // settled in semantMe; reused by irMe for the stack frame
 
     public AstFuncDec(AstType type, String name, AstList<AstVarDec> params, AstList<AstStmt> body, int lineNum) {
         serialNumber = AstNodeSerialNumber.getFresh();
@@ -62,20 +63,31 @@ public class AstFuncDec extends AstDec {
         /*****************************************************/
         TypeFunction funcType = new TypeFunction(returnType, name, null);
         SymbolTable.getInstance().enter(name, funcType);
+        this.funcType = funcType;
 
         /****************************/
         /* [3] Begin Function Scope */
         /****************************/
         SymbolTable.getInstance().beginScope();
 
+        // Set current function before param semant so AstVarDec can allocate stack slots.
+        SymbolTable.getInstance().setCurrentFunction(funcType);
+
         /***************************/
         /* [4] Semant Input Params */
         /***************************/
         TypeList lastParam = null;
+        // Implicit `this` (for class methods) takes the first param slot ($fp+8).
+        if (SymbolTable.getInstance().getCurrentClass() != null) {
+            funcType.paramCount = 1;
+            funcType.paramSlotCount = 1;
+        }
+        funcType.processingParams = true;
         if (params != null) {
             for (AstList<AstVarDec> it = params; it != null; it = it.tail) {
                 if (it.head != null) {
                     Type paramType = it.head.semantMe();
+                    funcType.paramCount++;
                     TypeList newParam = new TypeList(paramType, null);
                     if (lastParam == null) {
                         paramTypes = newParam;
@@ -86,14 +98,10 @@ public class AstFuncDec extends AstDec {
                 }
             }
         }
+        funcType.processingParams = false;
 
         // Update function type with parameter list
         funcType.params = paramTypes;
-
-        /*****************************************/
-        /* [4.5] Set current function context    */
-        /*****************************************/
-        SymbolTable.getInstance().setCurrentFunction(funcType);
 
         /*******************/
         /* [5] Semant Body */
@@ -121,34 +129,47 @@ public class AstFuncDec extends AstDec {
 	
 	@Override
     public Temp irMe() {
-        Ir.getInstance().AddIrCommand(new IrCommandFuncStart(name));
+        TypeFunction funcType = this.funcType;
 
-        // If in a class, $a0 is 'this'. Capture it first.
+        // SPIM enters at `main`. The user's main is renamed to _user_main.
+        // _user_ prefix avoids collisions with SPIM reserved opcodes.
+        String label;
+        if (SymbolTable.getInstance().getCurrentClass() != null) {
+            label = "_user_" + SymbolTable.getInstance().getCurrentClass().name + "_" + this.name;
+        } else if (this.name.equals("main")) {
+            label = "_user_main";
+        } else {
+            label = "_user_" + this.name;
+        }
+        Ir.getInstance().AddIrCommand(new IrCommandFuncStart(label, funcType));
+
+        SymbolTable.getInstance().setCurrentFunction(funcType);
+
+        // The prologue (in IrCommandFuncStart.mipsMe) spills $a0..$a3 into the
+        // shadow space at $fp+8..+20, so params 0..3 are already in their slots.
+        // Args 4+ were written by the caller above the shadow area.
+        //
+        // For class methods, `this` is param 0 at $fp+8. Load it once into a temp
+        // so the body can reference it via SymbolTable.currThis.
         if (SymbolTable.getInstance().getCurrentClass() != null) {
             Temp thisTemp = TempFactory.getInstance().getFreshTemp();
-            Ir.getInstance().AddIrCommand(new IrCommandMoveFromReg("$a0", thisTemp));
+            Ir.getInstance().AddIrCommand(new IrCommandLoadLocal(thisTemp, 8));
             SymbolTable.getInstance().currThis = thisTemp;
         }
 
-        // Move parameters from $a0-a3 (or stack) into their corresponding Temps
-        if (params != null) {
-            int i = (SymbolTable.getInstance().getCurrentClass() != null) ? 1 : 0;
-            for (AstList<AstVarDec> it = params; it != null; it = it.tail) {
-                if (it.head != null) {
-                    Temp pTemp = it.head.irMe();
-                    if (i < 4) Ir.getInstance().AddIrCommand(new IrCommandMoveFromReg("$a" + i, pTemp));
-                    else {
-                        int offset = (i - 4) * 4;
-                        Ir.getInstance().AddIrCommand(new IrCommandLoadFromReg(pTemp, "$sp", offset));
-                    }
-                    i++;
-                }
-            }
-        }
-
         if (body != null) body.irMe();
-        if (this.type.name.equals("void")) Ir.getInstance().AddIrCommand(new IrCommandReturn(null));
-        Ir.getInstance().AddIrCommand(new IrCommandFuncEnd(name));
+
+        // Implicit `return;` for void functions when the user didn't write one.
+        if (this.type.name.equals("void")) {
+            Ir.getInstance().AddIrCommand(new IrCommandReturn(null, funcType));
+        }
+        Ir.getInstance().AddIrCommand(new IrCommandFuncEnd(label));
+
+        // Locals fully tallied — settle the frame size.
+        funcType.frameSize = funcType.localSlotCount * 4;
+
+        SymbolTable.getInstance().setCurrentFunction(null);
+        SymbolTable.getInstance().currThis = null;
         return null;
     }
 }

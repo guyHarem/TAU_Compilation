@@ -1,38 +1,36 @@
-/***********/
-/* PACKAGE */
-/***********/
 package ir;
 
-/*******************/
-/* GENERAL IMPORTS */
-/*******************/
 import java.util.List;
 import java.util.Arrays;
 import java.util.Collections;
 
-/*******************/
-/* PROJECT IMPORTS */
-/*******************/
 import mips.*;
 import temp.*;
+import types.TypeFunction;
 
-// TODO: Actually add return value in excercise 5. Also add conversion to mips.
 public class IrCommandReturn extends IrCommand
 {
 	public Temp retval;
-	
-	public IrCommandReturn(Temp retval)
-	{
+	public TypeFunction funcType; // null for runtime helpers
+
+	public IrCommandReturn(Temp retval) { this.retval = retval; }
+	public IrCommandReturn(Temp retval, TypeFunction funcType) {
 		this.retval = retval;
+		this.funcType = funcType;
 	}
 
 	@Override public List<Temp> getUsedTemps() { return retval != null ? Arrays.asList(retval) : Collections.emptyList(); }
     @Override public List<Temp> getDefTemps() { return Collections.emptyList(); }
     @Override public void mipsMe() {
+        MipsGenerator g = MipsGenerator.getInstance();
         if (retval != null) {
             String r = RegAlloc.getInstance().allocation.get(retval);
-            MipsGenerator.getInstance().moveToReg("$v0", r);
+            g.moveToReg("$v0", r);
         }
-        MipsGenerator.getInstance().ret();
+        if (funcType != null) {
+            g.epilogue();
+        } else {
+            g.ret();
+        }
     }
 }
