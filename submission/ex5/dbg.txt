@@ -1,9 +1,0 @@
-digraph CFG {
-    104 [label="FuncStart (104)"];
-    104 -> 105;
-    105 [label="LoadAddress (105)"];
-    105 -> 106;
-    106 [label="PrintString (106)"];
-    106 -> 107;
-    107 [label="Exit (107)"];
-}
