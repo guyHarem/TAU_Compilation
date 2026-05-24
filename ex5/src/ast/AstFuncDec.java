@@ -159,10 +159,11 @@ public class AstFuncDec extends AstDec {
 
         if (body != null) body.irMe();
 
-        // Implicit `return;` for void functions when the user didn't write one.
-        if (this.type.name.equals("void")) {
-            Ir.getInstance().AddIrCommand(new IrCommandReturn(null, funcType));
-        }
+        // Always emit a fall-through return so functions without an explicit
+        // return don't run off the end of their bodies into the next function.
+        // For non-void this is technically UB per spec §3, but the canonical
+        // behavior is to return whatever happens to be in $v0.
+        Ir.getInstance().AddIrCommand(new IrCommandReturn(null, funcType));
         Ir.getInstance().AddIrCommand(new IrCommandFuncEnd(label));
 
         // Locals fully tallied — settle the frame size.

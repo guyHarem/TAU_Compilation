@@ -70,6 +70,7 @@ public class AstClassDec extends AstDec {
         /******************************************/
         /* [5] Process fields and methods         */
         /******************************************/
+        java.util.Set<String> seenMemberNames = new java.util.HashSet<>();
         if (fields != null) {
             for (AstList<AstDec> it = fields; it != null; it = it.tail) {
                 if (it.head != null) {
@@ -89,10 +90,54 @@ public class AstClassDec extends AstDec {
                     /******************************************/
                     /* [5.1] Check for duplicate in same class */
                     /******************************************/
-                    if (memberName != null && classType.memberMap.containsKey(memberName)) {
-                        // Same name already exists in this class - illegal
-                        // This covers: method overloading, duplicate fields, field-method conflict
+                    if (memberName != null && !seenMemberNames.add(memberName)) {
                         throw new SemanticError(memberLine, "duplicate member name in class: " + memberName);
+                    }
+
+                    /******************************************/
+                    /* [5.0] Pre-register own signature so the */
+                    /* method body can recurse into itself.    */
+                    /* Sibling methods declared LATER are NOT  */
+                    /* registered yet (use-before-def stays    */
+                    /* an error per spec ex3 §2.2).            */
+                    /******************************************/
+                    if (isMethod) {
+                        AstFuncDec fd = (AstFuncDec) it.head;
+                        Type retType = SymbolTable.getInstance().find(fd.type.name);
+                        if (retType == null) {
+                            throw new SemanticError(fd.type.line, "non-existing return type: " + fd.type.name);
+                        }
+                        TypeList paramSig = null;
+                        TypeList lastParam = null;
+                        if (fd.params != null) {
+                            for (AstList<AstVarDec> pi = fd.params; pi != null; pi = pi.tail) {
+                                if (pi.head != null) {
+                                    Type pt = SymbolTable.getInstance().find(pi.head.type.name);
+                                    if (pt == null) {
+                                        throw new SemanticError(pi.head.type.line,
+                                            "non-existing parameter type: " + pi.head.type.name);
+                                    }
+                                    TypeList np = new TypeList(pt, null);
+                                    if (lastParam == null) paramSig = np;
+                                    else lastParam.tail = np;
+                                    lastParam = np;
+                                }
+                            }
+                        }
+                        TypeFunction tf = new TypeFunction(retType, fd.name, paramSig);
+                        fd.funcType = tf;
+                        classType.memberMap.put(fd.name, tf);
+                        // Also assign vtable slot now so AstCallExp.semantMe (called
+                        // from inside the body) can resolve methodIndex correctly.
+                        String mangled = "_user_" + name + "_" + fd.name;
+                        if (!classType.methodIndex.containsKey(fd.name)) {
+                            int slot = classType.methodIndex.size();
+                            classType.methodIndex.put(fd.name, slot);
+                            classType.methodLabel.put(fd.name, mangled);
+                        } else {
+                            // override of an inherited method
+                            classType.methodLabel.put(fd.name, mangled);
+                        }
                     }
 
                     /******************************************/
