@@ -172,10 +172,10 @@ def main():
     print("--- Starting Student Self-Check ---")
     
     try:
-        # hostname = socket.gethostname()
-        # if hostname != HOST_NAME:
-        #     print(f"FATAL ERROR: This script must be run on 'nova'.")
-        #     raise RuntimeError("Invalid host machine.")
+        hostname = socket.gethostname()
+        if hostname != HOST_NAME:
+            print(f"FATAL ERROR: This script must be run on 'nova'.")
+            raise RuntimeError("Invalid host machine.")
     
         unzip_single_archive()
         output_dir, executable_file = setup_self_check()
